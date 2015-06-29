@@ -24,6 +24,24 @@ enum labelVertAttribs {
 #include "someroots.hpp"
 
 
+#include <string>
+#include <sstream>
+#include <fstream>
+const uint shaderLogSize = 1024;
+char shaderLogBuffer[shaderLogSize];
+void initGLshader(GLint shader, const char *filename) {
+	ifstream sourceFile(filename);
+	stringstream sourceStream;
+	sourceStream << sourceFile.rdbuf();
+	string sourceString = sourceStream.str();
+	const char *source = sourceString.c_str();
+	glShaderSource(shader, 1, &source, NULL);
+	glCompileShader(shader);
+	glGetShaderInfoLog(shader, shaderLogSize, NULL, shaderLogBuffer);
+	cout << "compiling " << filename << "...\n" << shaderLogBuffer << endl;
+}
+
+
 int main(int argc, char *argv[]) {
 	cout << sizeof(string) << endl;
 	SDL_Init(SDL_INIT_VIDEO);
@@ -62,39 +80,17 @@ int main(int argc, char *argv[]) {
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	
-	int  shaderLogSize = 1024;
-	char shaderLogBuffer[shaderLogSize];
 	
-	const char *vertexSource = 
-		"#version 330\n"
-		"uniform vec2 offSet;\n"
-		"in      vec2 posAttrib;\n"
-		"in      vec4 colorAttrib;\n"
-		"out     vec4 colorInterp;\n"
-		"void main() {\n"
-			"colorInterp = colorAttrib;\n"
-			"gl_Position = vec4(posAttrib+offSet, 0.0, 1.0);\n"
-	"}";
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexSource, NULL);
-	glCompileShader(vertexShader);
-	glGetShaderInfoLog(vertexShader, shaderLogSize, NULL, shaderLogBuffer);
-	cout << "compiling vertex shader...\n" << shaderLogBuffer << endl;
-	
-	const char *fragmentSource = 
-		"#version 330\n"
-		"in  vec4 colorInterp;\n"
-		"out vec4 outColor;\n"
-		"void main() { outColor = colorInterp; }";
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
-	glCompileShader(fragmentShader);
-	glGetShaderInfoLog(fragmentShader, shaderLogSize, NULL, shaderLogBuffer);
-	cout << "compiling fragment shader...\n" << shaderLogBuffer << endl;
+	const char *labelVertSrcFilename = "labelVert.glsl";
+	GLuint labelVertShader = glCreateShader(GL_VERTEX_SHADER);
+	initGLshader(labelVertShader, labelVertSrcFilename);
+	const char *labelFragSrcFilename = "labelFrag.glsl";
+	GLuint labelFragShader = glCreateShader(GL_FRAGMENT_SHADER);
+	initGLshader(labelFragShader, labelFragSrcFilename);
 	
 	GLuint shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
+	glAttachShader(shaderProgram, labelVertShader);
+	glAttachShader(shaderProgram, labelFragShader);
 	glBindFragDataLocation(shaderProgram, 0, "outColor");
 	glLinkProgram(shaderProgram);
 	glUseProgram(shaderProgram);
