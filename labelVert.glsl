@@ -1,5 +1,7 @@
 #version 330
 
+uniform vec2 screenSize;
+uniform vec2 charSize;
 uniform vec2 offSet;
 
 in  vec2 posAttrib;

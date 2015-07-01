@@ -15,11 +15,6 @@
 using namespace std;
 typedef unsigned int uint;
 
-enum labelVertAttribs {
-	x, y, z, glyphY, glyphX, wordX, glyphIndex, objIndex,
-	labelVertAttribCount
-};
-
 #include "foundation.hpp"
 #include "someroots.hpp"
 
@@ -43,23 +38,29 @@ void initGLshader(GLint shader, const char *filename) {
 
 
 int main(int argc, char *argv[]) {
-	cout << sizeof(string) << endl;
+	
+	activeGlyphSheet.glyphW = 16;
+	activeGlyphSheet.glyphH = 24;
+	buildsomeroots();
+	vector<float> rootVerts;
+	buildVerts(rootVerts);
+	
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	
-	const float    videoWidth  = 1280;
-	const float    videoHeight =  720;
-	//const uint32_t videoSize   = videoWidth * videoHeight;
+	const float videoW = 1280;
+	const float videoH =  720;
+	//const uint32_t videoSize   = videoW * videoH;
 	SDL_Window    *window    = NULL;
 	SDL_GLContext  GLcontext = NULL;
 	window = SDL_CreateWindow(
 		__FILE__,                  //const char* title,
 		SDL_WINDOWPOS_UNDEFINED,   //int         x,
 		SDL_WINDOWPOS_UNDEFINED,   //int         y,
-		videoWidth,                //int         w,
-		videoHeight,               //int         h,
+		videoW,                    //int         w,
+		videoH,                    //int         h,
 		SDL_WINDOW_OPENGL          //Uint32      flags
 	);
 	GLcontext = SDL_GL_CreateContext(window);

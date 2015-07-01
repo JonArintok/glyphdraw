@@ -13,11 +13,6 @@ struct Array : Buffer {
 	bool isShaded;
 };
 
-struct Label {
-	string   text;
-	uint32_t color;//rgba
-};
-
 union RootUnion {
 	Variable v;
 	Array    a;
@@ -30,7 +25,8 @@ enum RootType {
 	rootTypeCount
 };
 struct Root {
-	Label     label;
+	string    text;
+	uint32_t  color;
 	RootType  rootType;
 	RootUnion root;
 };
@@ -40,11 +36,30 @@ vector<Root> roots;
 
 
 struct GlyphSheet {
-	uint32_t charHeight;
-	uint32_t charWidth;
+	uint32_t glyphW;
+	uint32_t glyphH;
 	uint32_t unicodeBegin;
 	uint32_t unicodeRange;
 	GLuint   texture;
 };
 GlyphSheet activeGlyphSheet;
+
+
+
+
+enum labelVertAttribs {
+	lva_x, 
+	lva_y, 
+	lva_z, 
+	lva_glyphX, 
+	lva_glyphY, 
+	lva_wordX, 
+	lva_glyphIndex, 
+	lva_objIndex,
+	labelVertAttribCount
+};
+enum UIlayers {
+	uil_rootLabels,
+	UIlayerCount
+};
 
