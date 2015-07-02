@@ -12,14 +12,13 @@ void buildsomeroots() {
 
 
 const uint vertsPerGlyph = 6;
-int buildVerts(vector<float> v) {
-	{
-		uint vsize = 0;
-		for (uint ri = 0; ri < roots.size(); ri++) {
-			vsize += roots[ri].text.length()*vertsPerGlyph*labelVertAttribCount;
-		}
-		v.resize(vsize);
+int buildVerts(vector<float> &v) {
+	uint vsize = 0;
+	for (uint ri = 0; ri < roots.size(); ri++) {
+		vsize += roots[ri].text.length()*vertsPerGlyph*labelVertAttribCount;
 	}
+	v.resize(vsize);
+	
 	uint vi = 0;
 	for (uint ri = 0; ri < roots.size(); ri++) {
 		uint wordLength = roots[ri].text.length();
@@ -29,19 +28,22 @@ int buildVerts(vector<float> v) {
 				gvi < vertsPerGlyph;
 				gvi++, vi += labelVertAttribCount
 			) {
-				float glyphX = gvi % 2;
-				float glyphY = gvi==2||gvi==4||gvi==5 ? 1 : 0;
-				v[vi+lva_x         ] = gvi + glyphX;
-				v[vi+lva_y         ] = ri  + glyphY;
-				v[vi+lva_z         ] = uil_rootLabels;
-				v[vi+lva_glyphX    ] = glyphX;
-				v[vi+lva_glyphY    ] = glyphY;
-				v[vi+lva_wordX     ] = (gvi + glyphX) / wordLength;
-				v[vi+lva_glyphIndex] = roots[ri].text[ci];
-				v[vi+lva_objIndex  ] = ri;
+				float glyphU = gvi==0||gvi==1||gvi==4 ? 0 : 1;
+				float glyphV = gvi==0||gvi==2||gvi==3 ? 0 : 1;
+				v[vi+lva_x] = ci + glyphU;
+				v[vi+lva_y] = ri + glyphV;
+				v[vi+lva_z] = uil_rootLabels;
+				v[vi+lva_r] = ((roots[ri].color>>24)&0x000000ff)/255.0;
+				v[vi+lva_g] = ((roots[ri].color>>16)&0x000000ff)/255.0;
+				v[vi+lva_b] = ((roots[ri].color>> 8)&0x000000ff)/255.0;
+				v[vi+lva_glyphU] = glyphU;
+				v[vi+lva_glyphV] = glyphV;
+				v[vi+lva_wordU ] = (gvi + glyphU) / wordLength;
+				v[vi+lva_glyphI] = roots[ri].text[ci];
 			}
 		}
 	}
-	return v.size();
+	
+	return vsize;
 }
 

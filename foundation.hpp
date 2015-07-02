@@ -51,11 +51,13 @@ enum labelVertAttribs {
 	lva_x, 
 	lva_y, 
 	lva_z, 
-	lva_glyphX, 
-	lva_glyphY, 
-	lva_wordX, 
-	lva_glyphIndex, 
-	lva_objIndex,
+	lva_r, 
+	lva_g, 
+	lva_b, 
+	lva_glyphU, 
+	lva_glyphV, 
+	lva_wordU, 
+	lva_glyphI, 
 	labelVertAttribCount
 };
 enum UIlayers {

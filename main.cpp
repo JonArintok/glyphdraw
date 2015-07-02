@@ -42,8 +42,6 @@ int main(int argc, char *argv[]) {
 	activeGlyphSheet.glyphW = 16;
 	activeGlyphSheet.glyphH = 24;
 	buildsomeroots();
-	vector<float> rootVerts;
-	buildVerts(rootVerts);
 	
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -68,19 +66,6 @@ int main(int argc, char *argv[]) {
 	glewExperimental = GL_TRUE;
 	glewInit();
 	
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	float vertices[] = {
-		00.0f,  0.5f, 1.0f, 0.0f, 0.0f, 1.0f, //Vertex 1: Red
-		00.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, //Vertex 2: Green
-		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f  //Vertex 3: Blue
-	};
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	
 	
 	const char *labelVertSrcFilename = "labelVert.glsl";
 	GLuint labelVertShader = glCreateShader(GL_VERTEX_SHADER);
@@ -96,20 +81,50 @@ int main(int argc, char *argv[]) {
 	glLinkProgram(shaderProgram);
 	glUseProgram(shaderProgram);
 	
-	GLint posAttrib = glGetAttribLocation(shaderProgram, "posAttrib");
+	
+	
+	
+	vector<float> rootVerts;
+	buildVerts(rootVerts);
+	
+	GLuint vao;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(
+		GL_ARRAY_BUFFER, 
+		sizeof(float)*rootVerts.size(), 
+		rootVerts.data(), 
+		GL_STATIC_DRAW
+	);
+	
+	GLint posAttrib     = glGetAttribLocation(shaderProgram, "pos");
+	GLint colorAttrib   = glGetAttribLocation(shaderProgram, "color");
+	GLint glyphUVAttrib = glGetAttribLocation(shaderProgram, "glyphUV");
+	GLint wordUAttrib   = glGetAttribLocation(shaderProgram, "wordU");
+	GLint glyphIAttrib  = glGetAttribLocation(shaderProgram, "glyphI");
 	glEnableVertexAttribArray(posAttrib);
-	glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 6*sizeof(float), 0);
-	
-	GLint colorAttrib = glGetAttribLocation(shaderProgram, "colorAttrib");
 	glEnableVertexAttribArray(colorAttrib);
-	glVertexAttribPointer(colorAttrib, 4, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(2*sizeof(float)));
+	glEnableVertexAttribArray(glyphUVAttrib);
+	glEnableVertexAttribArray(wordUAttrib);
+	glEnableVertexAttribArray(glyphIAttrib);
+	glVertexAttribPointer(posAttrib,     3, GL_FLOAT, GL_FALSE, labelVertAttribCount*sizeof(float), NULL);
+	glVertexAttribPointer(colorAttrib,   3, GL_FLOAT, GL_FALSE, labelVertAttribCount*sizeof(float), (void*)(sizeof(float)*lva_r));
+	glVertexAttribPointer(glyphUVAttrib, 2, GL_FLOAT, GL_FALSE, labelVertAttribCount*sizeof(float), (void*)(sizeof(float)*lva_glyphU));
+	glVertexAttribPointer(wordUAttrib,   1, GL_FLOAT, GL_FALSE, labelVertAttribCount*sizeof(float), (void*)(sizeof(float)*lva_wordU ));
+	glVertexAttribPointer(glyphIAttrib,  1, GL_FLOAT, GL_FALSE, labelVertAttribCount*sizeof(float), (void*)(sizeof(float)*lva_glyphI));
 	
 	
+	GLint screenSize = glGetUniformLocation(shaderProgram, "screenSize");
+	GLint glyphSize  = glGetUniformLocation(shaderProgram, "glyphSize");
+	GLint offSet     = glGetUniformLocation(shaderProgram, "offSet");
+	glUniform2f(screenSize, videoW, videoH);
+	glUniform2f(glyphSize, activeGlyphSheet.glyphW, activeGlyphSheet.glyphH);
+	glUniform2f(offSet, 0.1, -0.1);
 	
 	
-	
-	GLint offSet = glGetUniformLocation(shaderProgram, "offSet");
-	glUniform2f(offSet, 0.5f, 0.0f);
 	
 	
 	bool  running  = true;
@@ -127,7 +142,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, rootVerts.size());
 		
 		SDL_GL_SwapWindow(window);
 		//curFrame++;
