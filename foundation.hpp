@@ -35,33 +35,14 @@ vector<Root> roots;
 
 
 
-struct GlyphSheet {
-	uint32_t glyphW;
-	uint32_t glyphH;
-	uint32_t unicodeBegin;
-	uint32_t unicodeRange;
-	GLuint   texture;
-};
-GlyphSheet activeGlyphSheet;
+cl_mem       glyphSheet;
+SDL_Surface *gs_surface;
+uint32_t gs_glyphW;
+uint32_t gs_glyphH;
+uint32_t gs_glyphColCount;
+uint32_t gs_glyphRowCount;
+uint32_t gs_unicodefirst;
+uint32_t gs_unicodeLast;
 
 
-
-
-enum labelVertAttribs {
-	lva_x, 
-	lva_y, 
-	lva_z, 
-	lva_r, 
-	lva_g, 
-	lva_b, 
-	lva_glyphU, 
-	lva_glyphV, 
-	lva_wordU, 
-	lva_glyphI, 
-	labelVertAttribCount
-};
-enum UIlayers {
-	uil_rootLabels,
-	UIlayerCount
-};
 
