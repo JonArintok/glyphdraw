@@ -5,11 +5,12 @@
 #include <CL/cl.h>
 #include <SDL2/SDL.h>
 using namespace std;
-typedef unsigned int  uint;
-typedef unsigned char uchar;
+typedef uint32_t uint;
+typedef uint8_t  uchar;
 #include "cl_getErrorString.h"
 #include "foundation.hpp"
 #include "init.hpp"
+#include "someroots.hpp"
 
 bool  running  = false;
 float curFrame = 1;
@@ -72,22 +73,23 @@ int main(int argc, char* argv[]) {
 	}
 	
 	
+	buildsomeroots();
 	
 	const char *bmp_path = "GS_000032-000127_064x003_010x023_hermit_16.bmp";
-	gs_glyphW = 10;
-	gs_glyphH = 23;
-	gs_glyphColCount = 64;
-	gs_glyphRowCount =  3;
-	gs_unicodefirst =  32;
-	gs_unicodeLast  = 127;
-	gs_surface = SDL_LoadBMP(bmp_path);
+	gsi.glyphW = 10;
+	gsi.glyphH = 23;
+	gsi.colCount = 64;
+	gsi.rowCount =  3;
+	gsi.unicodeFirst =  32;
+	gsi.unicodeLast  = 127;
+	gss = SDL_LoadBMP(bmp_path);
 	{
 		cl_image_format glyphSheetFormat = {CL_LUMINANCE, CL_UNORM_INT8};
 		cl_image_desc glyphSheetDesc;
 		memset(&glyphSheetDesc, '\0', sizeof(cl_image_desc));
 		glyphSheetDesc.image_type   = CL_MEM_OBJECT_IMAGE2D;
-		glyphSheetDesc.image_width  = gs_surface->w;
-		glyphSheetDesc.image_height = gs_surface->h;
+		glyphSheetDesc.image_width  = gss->w;
+		glyphSheetDesc.image_height = gss->h;
 		glyphSheet = clCreateImage(
 			context,               //cl_context             context,
 			CL_MEM_READ_ONLY,      //cl_mem_flags           flags,
@@ -103,41 +105,117 @@ int main(int argc, char* argv[]) {
 	}
 	{
 		size_t origin[] = {0,0,0};
-		size_t region[] = {(size_t)gs_surface->w, (size_t)gs_surface->h, 1};
-		clEnqueueWriteImage(
+		size_t region[] = {(size_t)gss->w, (size_t)gss->h, 1};
+		status = clEnqueueWriteImage(
 			commandQueue,         //cl_command_queue  command_queue,
 			glyphSheet,           //cl_mem            image,
 			CL_TRUE,              //cl_bool           blocking_write,
 			&origin[0],           //const size_t     *origin,
 			&region[0],           //const size_t     *region,
-			gs_surface->w,        //size_t            input_row_pitch,
+			gss->w,               //size_t            input_row_pitch,
 			0,                    //size_t            input_slice_pitch,
-			gs_surface->pixels,   //const void       *ptr,
+			gss->pixels,          //const void       *ptr,
 			0,                    //cl_uint           num_events_in_wait_list,
 			NULL,                 //const cl_event   *event_wait_list,
 			NULL                  //cl_event         *event
 		);
+		if (status != CL_SUCCESS) {
+			cout << "failed: clEnqueueWriteImage" << endl;
+			return __LINE__;
+		}
+	}
+	
+	
+	
+	uint UItextSize = sizeof(uint) * UItextBlock.w * UItextBlock.h;
+	cl_mem UItext_clmem = clCreateBuffer(
+		context, 
+		CL_MEM_READ_ONLY, 
+		UItextSize, 
+		NULL,
+		&status
+	);
+	if (status != CL_SUCCESS) {
+		cout << "failed: clCreateBuffer" << endl;
+		return __LINE__;
+	}
+	status = clEnqueueWriteBuffer (
+		commandQueue,             //cl_command_queue command_queue,
+		UItext_clmem,                   //cl_mem           buffer,
+		CL_TRUE,                  //cl_bool          blocking_write,
+		0,                        //size_t           offset,
+		UItextSize,               //size_t           cb,
+		(void*)UItextBlock.text,  //const void      *ptr,
+		0,                        //cl_uint          num_events_in_wait_list,
+		NULL,                     //const cl_event  *event_wait_list,
+		NULL                      //cl_event        *event
+	);
+	if (status != CL_SUCCESS) {
+		cout << "failed: clEnqueueWriteBuffer" << endl;
+		return __LINE__;
+	}
+	
+	
+	cl_mem gsi_clmem = clCreateBuffer(
+		context, 
+		CL_MEM_READ_ONLY, 
+		UItextSize, 
+		NULL,
+		&status
+	);
+	if (status != CL_SUCCESS) {
+		cout << "failed: clCreateBuffer" << endl;
+		return __LINE__;
+	}
+	status = clEnqueueWriteBuffer (
+		commandQueue,             //cl_command_queue command_queue,
+		gsi_clmem,                //cl_mem           buffer,
+		CL_TRUE,                  //cl_bool          blocking_write,
+		0,                        //size_t           offset,
+		sizeof(glyphSheetInfo),   //size_t           cb,
+		(void*)&gsi,              //const void      *ptr,
+		0,                        //cl_uint          num_events_in_wait_list,
+		NULL,                     //const cl_event  *event_wait_list,
+		NULL                      //cl_event        *event
+	);
+	if (status != CL_SUCCESS) {
+		cout << "failed: clEnqueueWriteBuffer" << endl;
+		return __LINE__;
 	}
 	
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	status = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&glyphSheet);
+	status = clSetKernelArg(kernel, 0, sizeof(uint), (void*)&UItextBlock.w);
+	if (status != CL_SUCCESS) {
+		cout << "failed to set kernel arg 0" << endl;
+		return __LINE__;
+	}
+	status = clSetKernelArg(kernel, 1, sizeof(uint), (void*)&UItextBlock.h);
 	if (status != CL_SUCCESS) {
 		cout << "failed to set kernel arg 1" << endl;
 		return __LINE__;
 	}
-	status = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&outputImage);
+	
+	status = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&UItext_clmem);
 	if (status != CL_SUCCESS) {
 		cout << "failed to set kernel arg 2" << endl;
+		return __LINE__;
+	}
+	status = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&gsi_clmem);
+	if (status != CL_SUCCESS) {
+		cout << "failed to set kernel arg 3" << endl;
+		return __LINE__;
+	}
+	
+	status = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&glyphSheet);
+	if (status != CL_SUCCESS) {
+		cout << "failed to set kernel arg 4" << endl;
+		return __LINE__;
+	}
+	status = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&outputImage);
+	if (status != CL_SUCCESS) {
+		cout << "failed to set kernel arg 5" << endl;
 		return __LINE__;
 	}
 	
@@ -149,11 +227,6 @@ int main(int argc, char* argv[]) {
 	running = true;
 	while (running) {
 		
-		status = clSetKernelArg(kernel, 0, sizeof(float),  (void*)&curFrame);
-		if (status != CL_SUCCESS) {
-			cout << "failed to set kernel arg 0" << endl;
-			return __LINE__;
-		}
 		
 		//run the kernel
 		size_t globalWorkSize[] = {(uint32_t)videoWidth, (uint32_t)videoHeight};
@@ -215,7 +288,8 @@ int main(int argc, char* argv[]) {
 		return __LINE__;
 	}
 	delete[] videoOut;
-	SDL_FreeSurface(gs_surface);
+	delete[] UItextBlock.text;
+	SDL_FreeSurface(gss);
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);

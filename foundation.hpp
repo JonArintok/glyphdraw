@@ -35,14 +35,21 @@ vector<Root> roots;
 
 
 
-cl_mem       glyphSheet;
-SDL_Surface *gs_surface;
-uint32_t gs_glyphW;
-uint32_t gs_glyphH;
-uint32_t gs_glyphColCount;
-uint32_t gs_glyphRowCount;
-uint32_t gs_unicodefirst;
-uint32_t gs_unicodeLast;
+cl_mem glyphSheet;
+SDL_Surface *gss;
+struct glyphSheetInfo {
+	uint glyphW;
+	uint glyphH;
+	uint colCount;
+	uint rowCount;
+	uint unicodeFirst;
+	uint unicodeLast;
+};
+glyphSheetInfo gsi;
 
-
-
+struct textBlock {
+	char *text;
+	uint w;
+	uint h;
+};
+textBlock UItextBlock;

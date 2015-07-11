@@ -101,6 +101,7 @@ void initClProgram(
 	cl_device_id *devices, 
 	cl_int       &status
 ) {
+	cout << "building program from " << filename << endl;
 	ifstream sourceFile(filename);
 	stringstream sourceStream;
 	sourceStream << sourceFile.rdbuf();
@@ -118,6 +119,8 @@ void initClProgram(
 	status = clBuildProgram(program, 1, devices, NULL,NULL,NULL);
 	if (status != CL_SUCCESS) {
 		cout << "failed: clBuildProgram:" << endl;
+	}
+	{
 		size_t logLen;
 		clGetProgramBuildInfo(
 			program, 
@@ -138,8 +141,6 @@ void initClProgram(
 		);
 		cout << log << endl;
 		delete[] log;
-		return;
 	}
-	
-	
+	return;
 }
