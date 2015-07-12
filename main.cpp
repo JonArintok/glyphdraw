@@ -13,15 +13,6 @@ typedef uint8_t  uchar;
 #include "init.hpp"
 #include "someroots.hpp"
 
-bool  running  = false;
-float curFrame = 1;
-
-void handleEvents() {
-	SDL_Event event;
-	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_QUIT) running = false;
-	}
-}
 
 int main(int argc, char* argv[]) {
 	
@@ -230,56 +221,71 @@ int main(int argc, char* argv[]) {
 	
 	
 	
-	running = true;
+	bool  running      = true;
+	bool  shouldRedraw = true;
+	float curFrame = 1;
 	while (running) {
 		
-		
-		//run the kernel
-		size_t globalWorkSize[] = {(uint32_t)videoWidth, (uint32_t)videoHeight};
-		status = clEnqueueNDRangeKernel(
-			commandQueue,       //cl_command_queue command_queue,
-			kernel,             //cl_kernel        kernel,
-			2,                  //cl_uint          work_dim,
-			NULL,               //const size_t    *global_work_offset,
-			globalWorkSize,     //const size_t    *global_work_size,
-			NULL,               //const size_t    *local_work_size,
-			0,                  //cl_uint          num_events_in_wait_list,
-			NULL,               //const cl_event  *event_wait_list,
-			NULL                //cl_event        *event
-		);
-		if (status != CL_SUCCESS) {
-			cout << "failed: clEnqueueNDRangeKernel:" << endl 
-			<< cl_getErrorString(status) << endl;
-			exit(__LINE__);
+		if (shouldRedraw) {
+			//run the kernel
+			size_t globalWorkSize[] = {(uint32_t)videoWidth, (uint32_t)videoHeight};
+			status = clEnqueueNDRangeKernel(
+				commandQueue,       //cl_command_queue command_queue,
+				kernel,             //cl_kernel        kernel,
+				2,                  //cl_uint          work_dim,
+				NULL,               //const size_t    *global_work_offset,
+				globalWorkSize,     //const size_t    *global_work_size,
+				NULL,               //const size_t    *local_work_size,
+				0,                  //cl_uint          num_events_in_wait_list,
+				NULL,               //const cl_event  *event_wait_list,
+				NULL                //cl_event        *event
+			);
+			if (status != CL_SUCCESS) {
+				cout << "failed: clEnqueueNDRangeKernel:" << endl 
+				<< cl_getErrorString(status) << endl;
+				exit(__LINE__);
+			}
+			
+			//read the outputBuffer modified by our kernel back to host memory
+			size_t origin[] = {0, 0, 0};
+			size_t region[] = {(uint32_t)videoWidth, (uint32_t)videoHeight, 1};
+			status = clEnqueueReadImage(
+				commandQueue,      //cl_command_queue command_queue,
+				outputImage,       //cl_mem           image,
+				CL_TRUE,           //cl_bool          blocking_read,
+				origin,            //const            size_t origin[3],
+				region,            //const            size_t region[3],
+				0,                 //size_t           row_pitch,
+				0,                 //size_t           slice_pitch,
+				videoOut,          //void            *ptr,
+				0,                 //cl_uint          num_events_in_wait_list,
+				NULL,              //const cl_event  *event_wait_list,
+				NULL               //cl_event        *event
+			);
+			if (status != CL_SUCCESS) {
+				cout << "failed: clEnqueueReadImage" << endl;
+				exit(__LINE__);
+			}
+			
+			//render image on screen
+			SDL_UpdateTexture(texture, NULL, videoOut, videoWidth*sizeof(uint32_t));
+			SDL_RenderCopy(renderer, texture, NULL, NULL);
+			SDL_RenderPresent(renderer);
+			
+			shouldRedraw = false;
 		}
 		
-		//read the outputBuffer modified by our kernel back to host memory
-		size_t origin[] = {0, 0, 0};
-		size_t region[] = {(uint32_t)videoWidth, (uint32_t)videoHeight, 1};
-		status = clEnqueueReadImage(
-			commandQueue,      //cl_command_queue command_queue,
-			outputImage,       //cl_mem           image,
-			CL_TRUE,           //cl_bool          blocking_read,
-			origin,            //const            size_t origin[3],
-			region,            //const            size_t region[3],
-			0,                 //size_t           row_pitch,
-			0,                 //size_t           slice_pitch,
-			videoOut,          //void            *ptr,
-			0,                 //cl_uint          num_events_in_wait_list,
-			NULL,              //const cl_event  *event_wait_list,
-			NULL               //cl_event        *event
-		);
-		if (status != CL_SUCCESS) {
-			cout << "failed: clEnqueueReadImage" << endl;
-			exit(__LINE__);
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_QUIT: running = false; break;
+				case SDL_WINDOWEVENT:
+					if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
+						shouldRedraw = true;
+					}
+					break;
+			}
 		}
-		
-		//render image on screen
-		SDL_UpdateTexture(texture, NULL, videoOut, videoWidth*sizeof(uint32_t));
-		SDL_RenderCopy(renderer, texture, NULL, NULL);
-		SDL_RenderPresent(renderer);
-		
-		handleEvents();
 		curFrame++;
 		SDL_Delay(10);
 	}

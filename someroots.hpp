@@ -48,5 +48,6 @@ void buildsomeroots() {
 			UItextBlock.text[i] = ' ';
 		}
 	}
+	printTextBlock();
 }
 
