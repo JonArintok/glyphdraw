@@ -25,10 +25,10 @@ enum RootType {
 	rootTypeCount
 };
 struct Root {
-	string    text;
-	uint32_t  color;
-	RootType  rootType;
-	RootUnion root;
+	vector<uint> text;
+	uint         color;
+	RootType     rootType;
+	RootUnion    root;
 };
 
 vector<Root> roots;
@@ -48,8 +48,17 @@ struct glyphSheetInfo {
 glyphSheetInfo gsi;
 
 struct textBlock {
-	char *text;
+	uint *text;
 	uint w;
 	uint h;
 };
 textBlock UItextBlock;
+
+
+
+
+int uintVecFromString(vector<uint> &dest, const char *source) {
+	uint i = 0;
+	while (source[i]) dest.push_back(source[i++]);
+	return i;
+}

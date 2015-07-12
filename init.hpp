@@ -91,7 +91,6 @@ void initOpenCL(
 }
 
 
-#include <string>
 #include <sstream>
 #include <fstream>
 void initClProgram(

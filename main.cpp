@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <string>
 #include <CL/cl.h>
 #include <SDL2/SDL.h>
 using namespace std;
@@ -73,7 +74,6 @@ int main(int argc, char* argv[]) {
 	}
 	
 	
-	buildsomeroots();
 	
 	const char *bmp_path = "GS_000032-000127_064x003_010x023_hermit_16.bmp";
 	gsi.glyphW = 10;
@@ -127,7 +127,10 @@ int main(int argc, char* argv[]) {
 	
 	
 	
-	uint UItextSize = sizeof(uint) * UItextBlock.w * UItextBlock.h;
+	buildsomeroots();
+	
+	
+	size_t UItextSize = sizeof(uint) * UItextBlock.w * UItextBlock.h;
 	cl_mem UItext_clmem = clCreateBuffer(
 		context, 
 		CL_MEM_READ_ONLY, 
@@ -223,6 +226,9 @@ int main(int argc, char* argv[]) {
 	initVideo(videoWidth, videoHeight, __FILE__);
 	SDL_SetRenderTarget(renderer, texture);
 	SDL_RenderClear(renderer);
+	
+	
+	
 	
 	running = true;
 	while (running) {

@@ -25,11 +25,20 @@ __kernel void helloPixel(
 ) {
 	const int2 dim = {get_global_size(0), get_global_size(1)};
 	const int2 pos = {get_global_id(0), get_global_id(1)};
-	const int2 textPos = {pos.x/(*gsi).glyphW, pos.y/(*gsi).glyphH};
-	uint glyphIndex;
-	if (textPos.x > textW  &&  textPos.y > textH) {
-		glyphIndex = text[textPos.y*textW + textPos.x];
-	}
-	float4 color = read_imagef(glyphSheet, glyphSheetSampler, pos);//xyzw : abgr
+	const int2 textPos = {pos.x/gsi->glyphW, pos.y/gsi->glyphH};
+	const int textPosInBounds = textPos.x < textW && textPos.y < textH;
+	const int glyphIndex = 
+		text[(textPos.y*textW + textPos.x)*textPosInBounds] - gsi->unicodeFirst
+	;
+	const int glyphIndexInBounds = glyphIndex < gsi->colCount * gsi->rowCount;
+	const int2 glyphSheetPos = {
+		(glyphIndex % gsi->rowCount) * glyphIndexInBounds, 
+		(glyphIndex / gsi->rowCount) * glyphIndexInBounds
+	};
+	const int2 glyphSheetPixPos = {
+		(glyphSheetPos.x * gsi->glyphW) + (pos.x % textPos.x),
+		(glyphSheetPos.y * gsi->glyphH) + (pos.y % textPos.y)
+	};
+	float4 color = read_imagef(glyphSheet, glyphSheetSampler, glyphSheetPixPos);
 	write_imagef(out, pos, color);
 }
