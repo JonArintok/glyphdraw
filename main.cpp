@@ -55,10 +55,10 @@ int main(int argc, char* argv[]) {
 	
 	
 	
-	const char *bmp_path = "GS_000032-000127_064x003_010x023_hermit_16.bmp";
+	const char *bmp_path = "GS_0000032-0000127_032x003_010x023_hermit.bmp";
 	gsi.glyphW = 10;
 	gsi.glyphH = 23;
-	gsi.colCount = 64;
+	gsi.colCount = 32;
 	gsi.rowCount =  3;
 	gsi.unicodeFirst =  32;
 	gsi.unicodeLast  = 127;
@@ -227,6 +227,18 @@ int main(int argc, char* argv[]) {
 	bool  shouldRedraw = true;
 	float curFrame = 1;
 	while (running) {
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_QUIT: running = false; break;
+				case SDL_WINDOWEVENT:
+					if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
+						shouldRedraw = true;
+					}
+					break;
+			}
+		}
+		
 		
 		if (shouldRedraw) {
 			shouldRedraw = false;
@@ -271,6 +283,8 @@ int main(int argc, char* argv[]) {
 			
 			
 			
+			
+			
 			CLstatus = clEnqueueReadBuffer(
 				commandQueue,                 //cl_command_queue command_queue,
 				kernelInspect_clmem,          //cl_mem           buffer,
@@ -283,26 +297,26 @@ int main(int argc, char* argv[]) {
 				NULL                          //cl_event        *event
 			);
 			checkCLerror(__LINE__, __FILE__);
-			cout << "kernelInspect[100]: " << kernelInspect[100] << endl;
-			
+			/*
+			cout << endl << endl << "glyphSheetPos.y" << endl << endl;
+			for (uint row = 0; row < 3; row++) {
+				cout << endl << endl << "row: " << row << endl;
+				for (
+					uint i = videoWidth * gsi.glyphH * row; 
+					i < videoWidth * gsi.glyphH * row + gss->w;
+					i += gsi.glyphW
+				) {
+					cout << "kernelInspect[" << i << "]: " << kernelInspect[i] << endl;
+				}
+			}
+			*/
 			
 			
 			
 		}
 		
-		SDL_Event event;
-		while (SDL_PollEvent(&event)) {
-			switch (event.type) {
-				case SDL_QUIT: running = false; break;
-				case SDL_WINDOWEVENT:
-					if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
-						shouldRedraw = true;
-					}
-					break;
-			}
-		}
-		curFrame++;
 		SDL_Delay(10);
+		curFrame++;
 	}
 	
 	CLstatus = clReleaseKernel(kernel);

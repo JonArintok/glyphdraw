@@ -56,9 +56,3 @@ textBlock UItextBlock;
 
 
 
-
-int uintVecFromString(vector<uint> &dest, const char *source) {
-	uint i = 0;
-	while (source[i]) dest.push_back(source[i++]);
-	return i;
-}

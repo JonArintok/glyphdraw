@@ -1,9 +1,15 @@
 
+int uintVecFromString(vector<uint> &dest, const char *source) {
+	uint i = 0;
+	while (source[i]) dest.push_back(source[i++]);
+	return i;
+}
+
 void printTextBlock() {
 	uint i = 0;
 	for (uint row = 0; row < UItextBlock.h; row++) {
 		for (uint col = 0; col < UItextBlock.w; col++, i++) {
-			char c = (char)UItextBlock.text[i];
+			uchar c = (uchar)UItextBlock.text[i];
 			cout << c;
 		}
 		cout << endl;
@@ -48,6 +54,6 @@ void buildsomeroots() {
 			UItextBlock.text[i] = ' ';
 		}
 	}
-	printTextBlock();
+	//printTextBlock();
 }
 

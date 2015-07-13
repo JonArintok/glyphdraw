@@ -31,22 +31,24 @@ __kernel void helloPixel(
 	const int2 pos = {get_global_id(0), get_global_id(1)};
 	const int2 textPos = {pos.x/gsi->glyphW, pos.y/gsi->glyphH};
 	const int textPosInBounds = textPos.x < textW && textPos.y < textH;
-	const int glyphIndex = 
-		text[(textPos.y * textW + textPos.x)*textPosInBounds] - gsi->unicodeFirst
-	;
-	
-	
-	
-	const int linearPos = pos.y * dim.x + pos.x;
-	inspect[linearPos] = glyphIndex;
-	
-	
+	int glyphIndex = 0;
+	if (textPosInBounds) {
+		glyphIndex = text[(textPos.y * textW + textPos.x)] - gsi->unicodeFirst;
+	}
 	
 	const int glyphIndexInBounds = glyphIndex < gsi->colCount * gsi->rowCount;
 	const int2 glyphSheetPos = {
 		(glyphIndex % gsi->colCount) * glyphIndexInBounds, 
 		(glyphIndex / gsi->colCount) * glyphIndexInBounds
 	};
+	
+	
+	/*
+	const int linearPos = pos.y * dim.x + pos.x;
+	inspect[linearPos] = glyphSheetPos.y;
+	*/
+	
+	
 	const int2 glyphSheetPixPos = {
 		(glyphSheetPos.x * gsi->glyphW) + (pos.x % gsi->glyphW),
 		(glyphSheetPos.y * gsi->glyphH) + (pos.y % gsi->glyphH)
