@@ -14,33 +14,25 @@ typedef uint8_t  uchar;
 #include "someroots.hpp"
 
 
+
+
 int main(int argc, char* argv[]) {
 	
 	const float    videoWidth  = 1280;
 	const float    videoHeight =  720;
 	const uint32_t videoSize   = videoWidth * videoHeight;
 	
-	cl_int status = CL_SUCCESS;
 	const cl_uint maxDevices = 8;
 	cl_device_id     computeDevices[maxDevices];
 	cl_context       context = NULL;
 	cl_command_queue commandQueue = NULL;
-	initOpenCL(computeDevices, maxDevices, context, commandQueue, status);
-	if (status != CL_SUCCESS) {
-		cout << "failed: initOpenCL" << endl;
-		exit(__LINE__);
-	}
+	initOpenCL(computeDevices, maxDevices, context, commandQueue, CLstatus);
+	checkCLerror(__LINE__, __FILE__);
 	cl_program program;
-	initClProgram("UIshader.cl", program, context, computeDevices, status);
-	if (status != CL_SUCCESS) {
-		cout << "failed: initClProgram" << endl;
-		exit(__LINE__);
-	}
-	cl_kernel kernel = clCreateKernel(program, "helloPixel", &status);
-	if (status != CL_SUCCESS) {
-		cout << "failed to create kernel" << endl;
-		exit(__LINE__);
-	}
+	initClProgram("UIshader.cl", program, context, computeDevices, CLstatus);
+	checkCLerror(__LINE__, __FILE__);
+	cl_kernel kernel = clCreateKernel(program, "helloPixel", &CLstatus);
+	checkCLerror(__LINE__, __FILE__);
 	
 	cl_mem outputImage;
 	{
@@ -56,12 +48,9 @@ int main(int argc, char* argv[]) {
 			&outputImageFormat,    //const cl_image_format *image_format,
 			&outputImageDesc,      //const cl_image_desc   *image_desc,
 			NULL,                  //void                  *host_ptr,
-			&status                //cl_int                *errcode_ret
+			&CLstatus                //cl_int                *errcode_ret
 		);
-		if (status != CL_SUCCESS) {
-			cout << "failedto create 'outputImage'" << endl;
-			exit(__LINE__);
-		}
+		checkCLerror(__LINE__, __FILE__);
 	}
 	
 	
@@ -87,17 +76,14 @@ int main(int argc, char* argv[]) {
 			&glyphSheetFormat,     //const cl_image_format *image_format,
 			&glyphSheetDesc,       //const cl_image_desc   *image_desc,
 			NULL,                  //void                  *host_ptr,
-			&status                //cl_int                *errcode_ret
+			&CLstatus                //cl_int                *errcode_ret
 		);
-		if (status != CL_SUCCESS) {
-			cout << "failedto create 'glyphSheet'" << endl;
-			exit(__LINE__);
-		}
+		checkCLerror(__LINE__, __FILE__);
 	}
 	{
 		size_t origin[] = {0,0,0};
 		size_t region[] = {(size_t)gss->w, (size_t)gss->h, 1};
-		status = clEnqueueWriteImage(
+		CLstatus = clEnqueueWriteImage(
 			commandQueue,         //cl_command_queue  command_queue,
 			glyphSheet,           //cl_mem            image,
 			CL_TRUE,              //cl_bool           blocking_write,
@@ -110,10 +96,7 @@ int main(int argc, char* argv[]) {
 			NULL,                 //const cl_event   *event_wait_list,
 			NULL                  //cl_event         *event
 		);
-		if (status != CL_SUCCESS) {
-			cout << "failed: clEnqueueWriteImage" << endl;
-			return __LINE__;
-		}
+		checkCLerror(__LINE__, __FILE__);
 	}
 	
 	
@@ -127,13 +110,10 @@ int main(int argc, char* argv[]) {
 		CL_MEM_READ_ONLY, 
 		UItextSize, 
 		NULL,
-		&status
+		&CLstatus
 	);
-	if (status != CL_SUCCESS) {
-		cout << "failed: clCreateBuffer" << endl;
-		return __LINE__;
-	}
-	status = clEnqueueWriteBuffer (
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clEnqueueWriteBuffer (
 		commandQueue,             //cl_command_queue command_queue,
 		UItext_clmem,                   //cl_mem           buffer,
 		CL_TRUE,                  //cl_bool          blocking_write,
@@ -144,10 +124,7 @@ int main(int argc, char* argv[]) {
 		NULL,                     //const cl_event  *event_wait_list,
 		NULL                      //cl_event        *event
 	);
-	if (status != CL_SUCCESS) {
-		cout << "failed: clEnqueueWriteBuffer" << endl;
-		return __LINE__;
-	}
+	checkCLerror(__LINE__, __FILE__);
 	
 	
 	cl_mem gsi_clmem = clCreateBuffer(
@@ -155,13 +132,10 @@ int main(int argc, char* argv[]) {
 		CL_MEM_READ_ONLY, 
 		UItextSize, 
 		NULL,
-		&status
+		&CLstatus
 	);
-	if (status != CL_SUCCESS) {
-		cout << "failed: clCreateBuffer" << endl;
-		return __LINE__;
-	}
-	status = clEnqueueWriteBuffer (
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clEnqueueWriteBuffer (
 		commandQueue,             //cl_command_queue command_queue,
 		gsi_clmem,                //cl_mem           buffer,
 		CL_TRUE,                  //cl_bool          blocking_write,
@@ -172,51 +146,79 @@ int main(int argc, char* argv[]) {
 		NULL,                     //const cl_event  *event_wait_list,
 		NULL                      //cl_event        *event
 	);
-	if (status != CL_SUCCESS) {
-		cout << "failed: clEnqueueWriteBuffer" << endl;
-		return __LINE__;
-	}
+	checkCLerror(__LINE__, __FILE__);
 	
 	
 	
 	
-	status = clSetKernelArg(kernel, 0, sizeof(uint), (void*)&UItextBlock.w);
-	if (status != CL_SUCCESS) {
-		cout << "failed to set kernel arg 0" << endl;
-		return __LINE__;
-	}
-	status = clSetKernelArg(kernel, 1, sizeof(uint), (void*)&UItextBlock.h);
-	if (status != CL_SUCCESS) {
-		cout << "failed to set kernel arg 1" << endl;
-		return __LINE__;
-	}
 	
-	status = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&UItext_clmem);
-	if (status != CL_SUCCESS) {
-		cout << "failed to set kernel arg 2" << endl;
-		return __LINE__;
-	}
-	status = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&gsi_clmem);
-	if (status != CL_SUCCESS) {
-		cout << "failed to set kernel arg 3" << endl;
-		return __LINE__;
-	}
 	
-	status = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&glyphSheet);
-	if (status != CL_SUCCESS) {
-		cout << "failed to set kernel arg 4" << endl;
-		return __LINE__;
-	}
-	status = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&outputImage);
-	if (status != CL_SUCCESS) {
-		cout << "failed to set kernel arg 5" << endl;
-		return __LINE__;
-	}
+	int *kernelInspect = new int[videoSize];
+	for (uint i = 0; i < videoSize; i++) kernelInspect[i] = 1234;
+	cl_mem kernelInspect_clmem = clCreateBuffer(
+		context, 
+		CL_MEM_WRITE_ONLY, 
+		sizeof(int)*videoSize, 
+		NULL,
+		&CLstatus
+	);
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clEnqueueWriteBuffer (
+		commandQueue,             //cl_command_queue command_queue,
+		kernelInspect_clmem,      //cl_mem           buffer,
+		CL_TRUE,                  //cl_bool          blocking_write,
+		0,                        //size_t           offset,
+		sizeof(int)*videoSize,    //size_t           cb,
+		(void*)kernelInspect,     //const void      *ptr,
+		0,                        //cl_uint          num_events_in_wait_list,
+		NULL,                     //const cl_event  *event_wait_list,
+		NULL                      //cl_event        *event
+	);
+	checkCLerror(__LINE__, __FILE__);
+	
+	
+	
+	
+	
+	
+	CLstatus = clSetKernelArg(kernel, 0, sizeof(uint), (void*)&UItextBlock.w);
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clSetKernelArg(kernel, 1, sizeof(uint), (void*)&UItextBlock.h);
+	checkCLerror(__LINE__, __FILE__);
+	
+	CLstatus = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&UItext_clmem);
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&gsi_clmem);
+	checkCLerror(__LINE__, __FILE__);
+	
+	CLstatus = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&glyphSheet);
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&outputImage);
+	checkCLerror(__LINE__, __FILE__);
+	
+	
+	
+	
+	
+	CLstatus = clSetKernelArg(
+		kernel, 
+		6, 
+		sizeof(cl_mem),
+		(void*)&kernelInspect_clmem
+	);
+	checkCLerror(__LINE__, __FILE__);
+	
+	
+	
+	
+	
 	
 	uint32_t *videoOut = new uint32_t[videoSize];
 	initVideo(videoWidth, videoHeight, __FILE__);
-	SDL_SetRenderTarget(renderer, texture);
 	SDL_RenderClear(renderer);
+	//checkSDLerror(__LINE__, __FILE__);
+	SDL_SetRenderTarget(renderer, texture);
+	//checkSDLerror(__LINE__, __FILE__);
 	
 	
 	
@@ -227,9 +229,10 @@ int main(int argc, char* argv[]) {
 	while (running) {
 		
 		if (shouldRedraw) {
-			//run the kernel
+			shouldRedraw = false;
+			
 			size_t globalWorkSize[] = {(uint32_t)videoWidth, (uint32_t)videoHeight};
-			status = clEnqueueNDRangeKernel(
+			CLstatus = clEnqueueNDRangeKernel(
 				commandQueue,       //cl_command_queue command_queue,
 				kernel,             //cl_kernel        kernel,
 				2,                  //cl_uint          work_dim,
@@ -240,16 +243,11 @@ int main(int argc, char* argv[]) {
 				NULL,               //const cl_event  *event_wait_list,
 				NULL                //cl_event        *event
 			);
-			if (status != CL_SUCCESS) {
-				cout << "failed: clEnqueueNDRangeKernel:" << endl 
-				<< cl_getErrorString(status) << endl;
-				exit(__LINE__);
-			}
+			checkCLerror(__LINE__, __FILE__);
 			
-			//read the outputBuffer modified by our kernel back to host memory
 			size_t origin[] = {0, 0, 0};
 			size_t region[] = {(uint32_t)videoWidth, (uint32_t)videoHeight, 1};
-			status = clEnqueueReadImage(
+			CLstatus = clEnqueueReadImage(
 				commandQueue,      //cl_command_queue command_queue,
 				outputImage,       //cl_mem           image,
 				CL_TRUE,           //cl_bool          blocking_read,
@@ -262,17 +260,34 @@ int main(int argc, char* argv[]) {
 				NULL,              //const cl_event  *event_wait_list,
 				NULL               //cl_event        *event
 			);
-			if (status != CL_SUCCESS) {
-				cout << "failed: clEnqueueReadImage" << endl;
-				exit(__LINE__);
-			}
+			checkCLerror(__LINE__, __FILE__);
 			
-			//render image on screen
 			SDL_UpdateTexture(texture, NULL, videoOut, videoWidth*sizeof(uint32_t));
+			//checkSDLerror(__LINE__, __FILE__);
 			SDL_RenderCopy(renderer, texture, NULL, NULL);
+			//checkSDLerror(__LINE__, __FILE__);
 			SDL_RenderPresent(renderer);
+			//checkSDLerror(__LINE__, __FILE__);
 			
-			shouldRedraw = false;
+			
+			
+			CLstatus = clEnqueueReadBuffer(
+				commandQueue,                 //cl_command_queue command_queue,
+				kernelInspect_clmem,          //cl_mem           buffer,
+				CL_TRUE,                      //cl_bool          blocking_read,
+				0,                            //size_t           offset,
+				videoSize*sizeof(uint32_t),   //size_t           cb,
+				kernelInspect,                //void            *ptr,
+				0,                            //cl_uint          num_events_in_wait_list,
+				NULL,                         //const cl_event  *event_wait_list,
+				NULL                          //cl_event        *event
+			);
+			checkCLerror(__LINE__, __FILE__);
+			cout << "kernelInspect[100]: " << kernelInspect[100] << endl;
+			
+			
+			
+			
 		}
 		
 		SDL_Event event;
@@ -290,21 +305,32 @@ int main(int argc, char* argv[]) {
 		SDL_Delay(10);
 	}
 	
-	status = clReleaseKernel(kernel);
-	status = clReleaseProgram(program);
-	status = clReleaseMemObject(outputImage);
-	status = clReleaseCommandQueue(commandQueue);
-	status = clReleaseContext(context);
-	if (status != CL_SUCCESS) {
-		cout << "failed to release some CL objects" << endl;
-		return __LINE__;
-	}
+	CLstatus = clReleaseKernel(kernel);
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clReleaseProgram(program);
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clReleaseMemObject(UItext_clmem);
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clReleaseMemObject(gsi_clmem);
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clReleaseMemObject(glyphSheet);
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clReleaseMemObject(outputImage);
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clReleaseCommandQueue(commandQueue);
+	checkCLerror(__LINE__, __FILE__);
+	CLstatus = clReleaseContext(context);
+	checkCLerror(__LINE__, __FILE__);
+	
 	delete[] videoOut;
 	delete[] UItextBlock.text;
+	delete[] kernelInspect;
+	
 	SDL_FreeSurface(gss);
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+	
 	exit(0);
 }

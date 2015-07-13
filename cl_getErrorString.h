@@ -73,3 +73,38 @@ const char *cl_getErrorString(cl_int error) {
 		default: return "Unknown OpenCL error";
 	}
 }
+
+
+
+cl_int CLstatus = CL_SUCCESS;
+void checkCLerror(uint line, const char *sourcePath) {
+	if (CLstatus == CL_SUCCESS) return;
+	cout << "OpenCL error at line " << line << " in " << sourcePath << endl 
+	<< cl_getErrorString(CLstatus) << endl;
+	exit(CLstatus);
+}
+
+
+void checkSDLerror(uint line, const char *sourcePath) {
+	const char *error = SDL_GetError();
+	if (!error) return;
+	cout << "SDL error at line " << line << " in " << sourcePath << endl 
+	<< error << endl;
+	SDL_ClearError();
+	exit(-10);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
