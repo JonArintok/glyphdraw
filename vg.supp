@@ -1,0 +1,121 @@
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Cond
+	obj:*/libamdocl64.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Param
+	ioctl(generic)
+	...
+	obj:*/libamdocl64.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Param
+	write(buf)
+	...
+	obj:*/libamdocl64.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Addr1
+	...
+	obj:*/libamdocl64.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Addr2
+	...
+	obj:*/libamdocl64.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Addr4
+	...
+	obj:*/libamdocl64.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Addr8
+	...
+	obj:*/libamdocl64.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	...
+	obj:*/libamdocl64.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Cond
+	obj:*/fglrx_dri.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Param
+	ioctl(generic)
+	...
+	obj:*/fglrx_dri.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Addr1
+	...
+	obj:*/fglrx_dri.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Addr2
+	...
+	obj:*/fglrx_dri.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Addr4
+	...
+	obj:*/fglrx_dri.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Addr8
+	...
+	obj:*/fglrx_dri.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	...
+	obj:*/fglrx_dri.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	...
+	obj:*/libOpenCL.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	...
+	obj:*/libGL.so*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	fun:malloc
+	fun:strdup
+	...
+	obj:*/libSDL2*
+}
+
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	fun:malloc
+	fun:XGetWindowProperty
+	...
+	obj:*/libSDL2*
+}
+

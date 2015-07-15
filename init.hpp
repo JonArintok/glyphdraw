@@ -44,18 +44,16 @@ void initOpenCL(
 #include <sstream>
 #include <fstream>
 void initClProgram(
-	const char  **paths, //null-terminated
-	cl_program   &program, 
-	cl_context   &context, 
-	cl_device_id *devices
+	vector<const char*> &paths, 
+	cl_program          &program, 
+	cl_context          &context, 
+	cl_device_id        *devices
 ) {
-	uint        sourceCount = 0;
-	for (;paths[sourceCount]; sourceCount++);
-	string      sources     [sourceCount];
-	const char *sourcesData [sourceCount];
-	size_t      sourceSizes [sourceCount];
+	string      sources     [paths.size()];
+	const char *sourcesData [paths.size()];
+	size_t      sourceSizes [paths.size()];
 	cout << "building program from files:" << endl;
-	for (uint i = 0; i < sourceCount; i++) {
+	for (uint i = 0; i < paths.size(); i++) {
 		cout << '\t' << paths[i] << endl;
 		ifstream sourceFile(paths[i]);
 		stringstream sourceStream;
@@ -65,7 +63,7 @@ void initClProgram(
 		sourceSizes[i] = sources[i].size();
 	}
 	program = clCreateProgramWithSource(
-		context, sourceCount, sourcesData, sourceSizes, &CLstatus
+		context, paths.size(), sourcesData, sourceSizes, &CLstatus
 	);
 	checkCLerror(__LINE__, __FILE__);
 	CLstatus = clBuildProgram(program, 1, devices, NULL,NULL,NULL);

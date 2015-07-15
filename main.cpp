@@ -28,8 +28,8 @@ int main(int argc, char* argv[]) {
 	checkCLerror(__LINE__, __FILE__);
 	
 	cl_program program;
-	const char *sources[] = {"sharedWithCL.h", "UIshader.cl", NULL};
-	initClProgram(sources, program, context, computeDevices);
+	vector<const char*> paths = {"sharedWithCL.h", "UIshader.cl"};
+	initClProgram(paths, program, context, computeDevices);
 	checkCLerror(__LINE__, __FILE__);
 	cl_kernel kernel = clCreateKernel(program, "UIshader", &CLstatus);
 	checkCLerror(__LINE__, __FILE__);
