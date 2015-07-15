@@ -87,7 +87,7 @@ void checkCLerror(uint line, const char *sourcePath) {
 
 void checkSDLerror(uint line, const char *sourcePath) {
 	const char *error = SDL_GetError();
-	if (!error) return;
+	if (!error || !strlen(error)) return;
 	cout << "SDL error at line " << line << " in " << sourcePath << endl 
 	<< error << endl;
 	SDL_ClearError();

@@ -1,37 +1,4 @@
 
-SDL_Window    *window   = NULL;
-SDL_Renderer  *renderer = NULL;
-SDL_Texture   *texture  = NULL;
-void initVideo(uint videoWidth, uint videoHeight, const char* windowTitle) {
-	if ( SDL_Init(SDL_INIT_VIDEO) ) {
-		checkSDLerror(__LINE__, __FILE__);
-	}
-	window = SDL_CreateWindow(
-		windowTitle,               //const char* title,
-		SDL_WINDOWPOS_UNDEFINED,   //int         x,
-		SDL_WINDOWPOS_UNDEFINED,   //int         y,
-		videoWidth,                //int         w,
-		videoHeight,               //int         h,
-		SDL_WINDOW_OPENGL          //Uint32      flags
-	);
-	if (window == NULL) {
-		checkSDLerror(__LINE__, __FILE__);
-	}
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_TARGETTEXTURE);
-	if (renderer == NULL) {
-		checkSDLerror(__LINE__, __FILE__);
-	}
-	texture = SDL_CreateTexture(
-		renderer,                     //SDL_Renderer* renderer,
-		SDL_PIXELFORMAT_RGBA8888,     //Uint32        format,
-		SDL_TEXTUREACCESS_STREAMING,  //int           access, 
-		videoWidth,                   //int           w,
-		videoHeight                   //int           h
-	);
-	if (texture == NULL) {
-		checkSDLerror(__LINE__, __FILE__);
-	}
-}
 
 void initOpenCL(
 	cl_device_id     *devices, 

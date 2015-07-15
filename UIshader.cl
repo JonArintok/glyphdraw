@@ -23,9 +23,7 @@ __kernel void helloPixel(
 	__constant   glyphSheetInfo *gsi,         //3
 	__read_only  image2d_t       glyphSheet,  //4
 	__write_only image2d_t       out,         //5
-	
 	__global     int            *inspect      //6
-	
 ) {
 	const int2 dim = {get_global_size(0), get_global_size(1)};
 	const int2 pos = {get_global_id(0), get_global_id(1)};
@@ -42,12 +40,8 @@ __kernel void helloPixel(
 		(glyphIndex / gsi->colCount) * glyphIndexInBounds
 	};
 	
-	
-	/*
-	const int linearPos = pos.y * dim.x + pos.x;
-	inspect[linearPos] = glyphSheetPos.y;
-	*/
-	
+	//const int linearPos = pos.y * dim.x + pos.x;
+	//inspect[linearPos] = glyphSheetPos.y;
 	
 	const int2 glyphSheetPixPos = {
 		(glyphSheetPos.x * gsi->glyphW) + (pos.x % gsi->glyphW),
@@ -55,6 +49,4 @@ __kernel void helloPixel(
 	};
 	float4 color = read_imagef(glyphSheet, glyphSheetSampler, glyphSheetPixPos);
 	write_imagef(out, pos, color);
-	
 }
-

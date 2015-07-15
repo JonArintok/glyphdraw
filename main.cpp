@@ -1,5 +1,4 @@
 
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -8,21 +7,19 @@
 using namespace std;
 typedef uint32_t uint;
 typedef uint8_t  uchar;
-#include "cl_getErrorString.h"
+#include "error.hpp"
 #include "foundation.hpp"
 #include "init.hpp"
-#include "someroots.hpp"
-
-
+#include "testRoots.hpp"
 
 
 int main(int argc, char* argv[]) {
 	
-	const float    videoWidth  = 1280;
-	const float    videoHeight =  720;
-	const uint32_t videoSize   = videoWidth * videoHeight;
+	const uint videoW    = 1280;
+	const uint videoH    =  720;
+	const uint videoSize = videoW * videoH;
 	
-	const cl_uint maxDevices = 8;
+	const cl_uint    maxDevices = 8;
 	cl_device_id     computeDevices[maxDevices];
 	cl_context       context = NULL;
 	cl_command_queue commandQueue = NULL;
@@ -36,12 +33,12 @@ int main(int argc, char* argv[]) {
 	
 	cl_mem outputImage;
 	{
-		cl_image_format outputImageFormat = {CL_ARGB, CL_UNORM_INT8};
+		cl_image_format outputImageFormat = {CL_RGBA, CL_UNORM_INT8};
 		cl_image_desc outputImageDesc;
 		memset(&outputImageDesc, '\0', sizeof(cl_image_desc));
 		outputImageDesc.image_type   = CL_MEM_OBJECT_IMAGE2D;
-		outputImageDesc.image_width  = videoWidth;
-		outputImageDesc.image_height = videoHeight;
+		outputImageDesc.image_width  = videoW;
+		outputImageDesc.image_height = videoH;
 		outputImage = clCreateImage(
 			context,               //cl_context             context,
 			CL_MEM_WRITE_ONLY,     //cl_mem_flags           flags,
@@ -52,8 +49,6 @@ int main(int argc, char* argv[]) {
 		);
 		checkCLerror(__LINE__, __FILE__);
 	}
-	
-	
 	
 	const char *bmp_path = "GS_0000032-0000127_032x003_010x023_hermit.bmp";
 	gsi.glyphW = 10;
@@ -76,7 +71,7 @@ int main(int argc, char* argv[]) {
 			&glyphSheetFormat,     //const cl_image_format *image_format,
 			&glyphSheetDesc,       //const cl_image_desc   *image_desc,
 			NULL,                  //void                  *host_ptr,
-			&CLstatus                //cl_int                *errcode_ret
+			&CLstatus              //cl_int                *errcode_ret
 		);
 		checkCLerror(__LINE__, __FILE__);
 	}
@@ -99,10 +94,7 @@ int main(int argc, char* argv[]) {
 		checkCLerror(__LINE__, __FILE__);
 	}
 	
-	
-	
 	buildsomeroots();
-	
 	
 	size_t UItextSize = sizeof(uint) * UItextBlock.w * UItextBlock.h;
 	cl_mem UItext_clmem = clCreateBuffer(
@@ -126,7 +118,6 @@ int main(int argc, char* argv[]) {
 	);
 	checkCLerror(__LINE__, __FILE__);
 	
-	
 	cl_mem gsi_clmem = clCreateBuffer(
 		context, 
 		CL_MEM_READ_ONLY, 
@@ -147,11 +138,6 @@ int main(int argc, char* argv[]) {
 		NULL                      //cl_event        *event
 	);
 	checkCLerror(__LINE__, __FILE__);
-	
-	
-	
-	
-	
 	
 	int *kernelInspect = new int[videoSize];
 	for (uint i = 0; i < videoSize; i++) kernelInspect[i] = 1234;
@@ -177,10 +163,6 @@ int main(int argc, char* argv[]) {
 	checkCLerror(__LINE__, __FILE__);
 	
 	
-	
-	
-	
-	
 	CLstatus = clSetKernelArg(kernel, 0, sizeof(uint), (void*)&UItextBlock.w);
 	checkCLerror(__LINE__, __FILE__);
 	CLstatus = clSetKernelArg(kernel, 1, sizeof(uint), (void*)&UItextBlock.h);
@@ -196,10 +178,6 @@ int main(int argc, char* argv[]) {
 	CLstatus = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&outputImage);
 	checkCLerror(__LINE__, __FILE__);
 	
-	
-	
-	
-	
 	CLstatus = clSetKernelArg(
 		kernel, 
 		6, 
@@ -209,23 +187,27 @@ int main(int argc, char* argv[]) {
 	checkCLerror(__LINE__, __FILE__);
 	
 	
-	
-	
-	
-	
-	uint32_t *videoOut = new uint32_t[videoSize];
-	initVideo(videoWidth, videoHeight, __FILE__);
-	SDL_RenderClear(renderer);
-	//checkSDLerror(__LINE__, __FILE__);
-	SDL_SetRenderTarget(renderer, texture);
-	//checkSDLerror(__LINE__, __FILE__);
-	
-	
+	SDL_Init(SDL_INIT_VIDEO);
+	checkSDLerror(__LINE__, __FILE__);
+	SDL_Window *window = SDL_CreateWindow(
+		"ShaderPunk",              //const char* title,
+		SDL_WINDOWPOS_UNDEFINED,   //int         x,
+		SDL_WINDOWPOS_UNDEFINED,   //int         y,
+		videoW,                    //int         w,
+		videoH,                    //int         h,
+		0                          //Uint32      flags
+	);
+	checkSDLerror(__LINE__, __FILE__);
+	SDL_Surface *windowSrfc = SDL_GetWindowSurface(window);
+	{ //This must be a bug in SDL; I'm not even USING a renderer...
+		if (!strcmp(SDL_GetError(), "Invalid renderer")) SDL_ClearError();
+	}
+	checkSDLerror(__LINE__, __FILE__);
 	
 	
 	bool  running      = true;
 	bool  shouldRedraw = true;
-	float curFrame = 1;
+	uint curFrame = 1;
 	while (running) {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
@@ -239,11 +221,10 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		
-		
 		if (shouldRedraw) {
 			shouldRedraw = false;
 			
-			size_t globalWorkSize[] = {(uint32_t)videoWidth, (uint32_t)videoHeight};
+			size_t globalWorkSize[] = {videoW, videoH};
 			CLstatus = clEnqueueNDRangeKernel(
 				commandQueue,       //cl_command_queue command_queue,
 				kernel,             //cl_kernel        kernel,
@@ -258,31 +239,25 @@ int main(int argc, char* argv[]) {
 			checkCLerror(__LINE__, __FILE__);
 			
 			size_t origin[] = {0, 0, 0};
-			size_t region[] = {(uint32_t)videoWidth, (uint32_t)videoHeight, 1};
+			size_t region[] = {videoW, videoH, 1};
 			CLstatus = clEnqueueReadImage(
-				commandQueue,      //cl_command_queue command_queue,
-				outputImage,       //cl_mem           image,
-				CL_TRUE,           //cl_bool          blocking_read,
-				origin,            //const            size_t origin[3],
-				region,            //const            size_t region[3],
-				0,                 //size_t           row_pitch,
-				0,                 //size_t           slice_pitch,
-				videoOut,          //void            *ptr,
-				0,                 //cl_uint          num_events_in_wait_list,
-				NULL,              //const cl_event  *event_wait_list,
-				NULL               //cl_event        *event
+				commandQueue,       //cl_command_queue command_queue,
+				outputImage,        //cl_mem           image,
+				CL_TRUE,            //cl_bool          blocking_read,
+				origin,             //const            size_t origin[3],
+				region,             //const            size_t region[3],
+				0,                  //size_t           row_pitch,
+				0,                  //size_t           slice_pitch,
+				windowSrfc->pixels, //void            *ptr,
+				0,                  //cl_uint          num_events_in_wait_list,
+				NULL,               //const cl_event  *event_wait_list,
+				NULL                //cl_event        *event
 			);
 			checkCLerror(__LINE__, __FILE__);
 			
-			SDL_UpdateTexture(texture, NULL, videoOut, videoWidth*sizeof(uint32_t));
-			//checkSDLerror(__LINE__, __FILE__);
-			SDL_RenderCopy(renderer, texture, NULL, NULL);
-			//checkSDLerror(__LINE__, __FILE__);
-			SDL_RenderPresent(renderer);
-			//checkSDLerror(__LINE__, __FILE__);
 			
-			
-			
+			SDL_UpdateWindowSurface(window);
+			checkSDLerror(__LINE__, __FILE__);
 			
 			
 			CLstatus = clEnqueueReadBuffer(
@@ -297,22 +272,17 @@ int main(int argc, char* argv[]) {
 				NULL                          //cl_event        *event
 			);
 			checkCLerror(__LINE__, __FILE__);
-			/*
-			cout << endl << endl << "glyphSheetPos.y" << endl << endl;
-			for (uint row = 0; row < 3; row++) {
-				cout << endl << endl << "row: " << row << endl;
-				for (
-					uint i = videoWidth * gsi.glyphH * row; 
-					i < videoWidth * gsi.glyphH * row + gss->w;
-					i += gsi.glyphW
-				) {
-					cout << "kernelInspect[" << i << "]: " << kernelInspect[i] << endl;
-				}
-			}
-			*/
-			
-			
-			
+			//cout << endl << endl << "glyphSheetPos.y" << endl << endl;
+			//for (uint row = 0; row < 3; row++) {
+			//	cout << endl << endl << "row: " << row << endl;
+			//	for (
+			//		uint i = videoW * gsi.glyphH * row; 
+			//		i < videoW * gsi.glyphH * row + gss->w;
+			//		i += gsi.glyphW
+			//	) {
+			//		cout << "kernelInspect[" << i << "]: " << kernelInspect[i] << endl;
+			//	}
+			//}
 		}
 		
 		SDL_Delay(10);
@@ -336,14 +306,15 @@ int main(int argc, char* argv[]) {
 	CLstatus = clReleaseContext(context);
 	checkCLerror(__LINE__, __FILE__);
 	
-	delete[] videoOut;
 	delete[] UItextBlock.text;
 	delete[] kernelInspect;
 	
 	SDL_FreeSurface(gss);
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
+	checkSDLerror(__LINE__, __FILE__);
+	SDL_FreeSurface(windowSrfc);
+	checkSDLerror(__LINE__, __FILE__);
 	SDL_DestroyWindow(window);
+	checkSDLerror(__LINE__, __FILE__);
 	SDL_Quit();
 	
 	exit(0);

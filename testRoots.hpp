@@ -4,7 +4,7 @@ int uintVecFromString(vector<uint> &dest, const char *source) {
 	while (source[i]) dest.push_back(source[i++]);
 	return i;
 }
-
+/*
 void printTextBlock() {
 	uint i = 0;
 	for (uint row = 0; row < UItextBlock.h; row++) {
@@ -15,7 +15,7 @@ void printTextBlock() {
 		cout << endl;
 	}
 }
-
+*/
 void buildsomeroots() {
 	roots.resize(3);
 	uintVecFromString(roots[0].text, "foo bar baz");
