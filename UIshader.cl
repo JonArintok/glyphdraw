@@ -1,22 +1,11 @@
 
-typedef struct {
-	uint glyphW;
-	uint glyphH;
-	uint colCount;
-	uint rowCount;
-	uint unicodeFirst;
-	uint unicodeLast;
-} glyphSheetInfo;
-
-
-
 __constant sampler_t glyphSheetSampler = 
 	CLK_NORMALIZED_COORDS_FALSE | 
 	CLK_ADDRESS_CLAMP           | 
 	CLK_FILTER_NEAREST
 ;
 
-__kernel void helloPixel(
+__kernel void UIshader(
 	uint textW,                               //0
 	uint textH,                               //1
 	__constant   uint           *text,        //2

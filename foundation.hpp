@@ -37,14 +37,6 @@ vector<Root> roots;
 
 cl_mem glyphSheet;
 SDL_Surface *gss;
-struct glyphSheetInfo {
-	uint glyphW;
-	uint glyphH;
-	uint colCount;
-	uint rowCount;
-	uint unicodeFirst;
-	uint unicodeLast;
-};
 glyphSheetInfo gsi;
 
 struct textBlock {

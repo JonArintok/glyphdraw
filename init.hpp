@@ -4,8 +4,7 @@ void initOpenCL(
 	cl_device_id     *devices, 
 	const cl_uint     maxDevices, 
 	cl_context       &context, 
-	cl_command_queue &commandQueue, 
-	cl_int           &CLstatus
+	cl_command_queue &commandQueue
 ) {
 	cl_uint platformCount;
 	cl_platform_id platform = NULL;
@@ -45,22 +44,28 @@ void initOpenCL(
 #include <sstream>
 #include <fstream>
 void initClProgram(
-	const char   *filename, 
+	const char  **paths, //null-terminated
 	cl_program   &program, 
 	cl_context   &context, 
-	cl_device_id *devices, 
-	cl_int       &CLstatus
+	cl_device_id *devices
 ) {
-	cout << "building program from " << filename << endl;
-	ifstream sourceFile(filename);
-	stringstream sourceStream;
-	sourceStream << sourceFile.rdbuf();
-	string source = sourceStream.str();
-	const char *sources[] = {source.c_str()};
-	size_t  sourceSizes[] = {strlen(sources[0])};
-	
+	uint        sourceCount = 0;
+	for (;paths[sourceCount]; sourceCount++);
+	string      sources     [sourceCount];
+	const char *sourcesData [sourceCount];
+	size_t      sourceSizes [sourceCount];
+	cout << "building program from files:" << endl;
+	for (uint i = 0; i < sourceCount; i++) {
+		cout << '\t' << paths[i] << endl;
+		ifstream sourceFile(paths[i]);
+		stringstream sourceStream;
+		sourceStream << sourceFile.rdbuf();
+		sources[i] = sourceStream.str();
+		sourcesData[i] = sources[i].c_str();
+		sourceSizes[i] = sources[i].size();
+	}
 	program = clCreateProgramWithSource(
-		context, 1, sources, sourceSizes, &CLstatus
+		context, sourceCount, sourcesData, sourceSizes, &CLstatus
 	);
 	checkCLerror(__LINE__, __FILE__);
 	CLstatus = clBuildProgram(program, 1, devices, NULL,NULL,NULL);

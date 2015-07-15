@@ -8,6 +8,7 @@ using namespace std;
 typedef uint32_t uint;
 typedef uint8_t  uchar;
 #include "error.hpp"
+#include "sharedWithCL.h"
 #include "foundation.hpp"
 #include "init.hpp"
 #include "testRoots.hpp"
@@ -23,12 +24,14 @@ int main(int argc, char* argv[]) {
 	cl_device_id     computeDevices[maxDevices];
 	cl_context       context = NULL;
 	cl_command_queue commandQueue = NULL;
-	initOpenCL(computeDevices, maxDevices, context, commandQueue, CLstatus);
+	initOpenCL(computeDevices, maxDevices, context, commandQueue);
 	checkCLerror(__LINE__, __FILE__);
+	
 	cl_program program;
-	initClProgram("UIshader.cl", program, context, computeDevices, CLstatus);
+	const char *sources[] = {"sharedWithCL.h", "UIshader.cl", NULL};
+	initClProgram(sources, program, context, computeDevices);
 	checkCLerror(__LINE__, __FILE__);
-	cl_kernel kernel = clCreateKernel(program, "helloPixel", &CLstatus);
+	cl_kernel kernel = clCreateKernel(program, "UIshader", &CLstatus);
 	checkCLerror(__LINE__, __FILE__);
 	
 	cl_mem outputImage;
@@ -45,7 +48,7 @@ int main(int argc, char* argv[]) {
 			&outputImageFormat,    //const cl_image_format *image_format,
 			&outputImageDesc,      //const cl_image_desc   *image_desc,
 			NULL,                  //void                  *host_ptr,
-			&CLstatus                //cl_int                *errcode_ret
+			&CLstatus              //cl_int                *errcode_ret
 		);
 		checkCLerror(__LINE__, __FILE__);
 	}
