@@ -36,7 +36,7 @@ void buildsomeroots() {
 			UItextBlock.w = roots[i].text.size();
 		}
 	}
-	UItextBlock.text = new uint[UItextBlock.w * UItextBlock.h];
+	UItextBlock.text.resize(UItextBlock.w * UItextBlock.h);
 	uint i = 0;
 	for (uint row = 0; row < roots.size(); row++) {
 		uint col = 0;

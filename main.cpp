@@ -109,15 +109,15 @@ int main(int argc, char* argv[]) {
 	);
 	checkCLerror(__LINE__, __FILE__);
 	CLstatus = clEnqueueWriteBuffer (
-		commandQueue,             //cl_command_queue command_queue,
-		UItext_clmem,                   //cl_mem           buffer,
-		CL_TRUE,                  //cl_bool          blocking_write,
-		0,                        //size_t           offset,
-		UItextSize,               //size_t           cb,
-		(void*)UItextBlock.text,  //const void      *ptr,
-		0,                        //cl_uint          num_events_in_wait_list,
-		NULL,                     //const cl_event  *event_wait_list,
-		NULL                      //cl_event        *event
+		commandQueue,                    //cl_command_queue command_queue,
+		UItext_clmem,                    //cl_mem           buffer,
+		CL_TRUE,                         //cl_bool          blocking_write,
+		0,                               //size_t           offset,
+		UItextSize,                      //size_t           cb,
+		(void*)UItextBlock.text.data(),  //const void      *ptr,
+		0,                               //cl_uint          num_events_in_wait_list,
+		NULL,                            //const cl_event  *event_wait_list,
+		NULL                             //cl_event        *event
 	);
 	checkCLerror(__LINE__, __FILE__);
 	
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
 	);
 	checkCLerror(__LINE__, __FILE__);
 	
-	int *kernelInspect = new int[videoSize];
+	vector<int> kernelInspect(videoSize);
 	for (uint i = 0; i < videoSize; i++) kernelInspect[i] = 1234;
 	cl_mem kernelInspect_clmem = clCreateBuffer(
 		context, 
@@ -153,15 +153,15 @@ int main(int argc, char* argv[]) {
 	);
 	checkCLerror(__LINE__, __FILE__);
 	CLstatus = clEnqueueWriteBuffer (
-		commandQueue,             //cl_command_queue command_queue,
-		kernelInspect_clmem,      //cl_mem           buffer,
-		CL_TRUE,                  //cl_bool          blocking_write,
-		0,                        //size_t           offset,
-		sizeof(int)*videoSize,    //size_t           cb,
-		(void*)kernelInspect,     //const void      *ptr,
-		0,                        //cl_uint          num_events_in_wait_list,
-		NULL,                     //const cl_event  *event_wait_list,
-		NULL                      //cl_event        *event
+		commandQueue,                  //cl_command_queue command_queue,
+		kernelInspect_clmem,           //cl_mem           buffer,
+		CL_TRUE,                       //cl_bool          blocking_write,
+		0,                             //size_t           offset,
+		sizeof(int)*videoSize,         //size_t           cb,
+		(void*)kernelInspect.data(),   //const void      *ptr,
+		0,                             //cl_uint          num_events_in_wait_list,
+		NULL,                          //const cl_event  *event_wait_list,
+		NULL                           //cl_event        *event
 	);
 	checkCLerror(__LINE__, __FILE__);
 	
@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
 				CL_TRUE,                      //cl_bool          blocking_read,
 				0,                            //size_t           offset,
 				videoSize*sizeof(uint32_t),   //size_t           cb,
-				kernelInspect,                //void            *ptr,
+				kernelInspect.data(),         //void            *ptr,
 				0,                            //cl_uint          num_events_in_wait_list,
 				NULL,                         //const cl_event  *event_wait_list,
 				NULL                          //cl_event        *event
@@ -308,9 +308,6 @@ int main(int argc, char* argv[]) {
 	checkCLerror(__LINE__, __FILE__);
 	CLstatus = clReleaseContext(context);
 	checkCLerror(__LINE__, __FILE__);
-	
-	delete[] UItextBlock.text;
-	delete[] kernelInspect;
 	
 	SDL_FreeSurface(gss);
 	checkSDLerror(__LINE__, __FILE__);

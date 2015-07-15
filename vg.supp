@@ -101,21 +101,49 @@
 	...
 	obj:*/libGL.so*
 }
-{
-	<insert_a_suppression_name_here>
-	Memcheck:Leak
-	fun:malloc
-	fun:strdup
-	...
-	obj:*/libSDL2*
-}
+
+
+
 
 {
 	<insert_a_suppression_name_here>
 	Memcheck:Leak
 	fun:malloc
+	fun:strdup
+	obj:*/libX11.so*
+	fun:_XimSetICValueData
+	fun:_XimLocalCreateIC
+	fun:XCreateIC
+	obj:*/libSDL2*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	fun:malloc
+	fun:strdup
+	obj:*/libX11.so*
+	fun:_XimSetICValueData
+	fun:_XimLocalCreateIC
+	fun:XCreateIC
+	obj:*/libSDL2*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	fun:malloc
+	fun:strdup
+	obj:*/libX11.so*
+	fun:_XimSetICValueData
+	fun:_XimLocalCreateIC
+	fun:XCreateIC
+	obj:*/libSDL2*
+}
+{
+	<insert_a_suppression_name_here>
+	Memcheck:Leak
+	match-leak-kinds: definite
+	fun:malloc
 	fun:XGetWindowProperty
-	...
 	obj:*/libSDL2*
 }
 

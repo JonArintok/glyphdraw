@@ -30,7 +30,6 @@ struct Root {
 	RootType     rootType;
 	RootUnion    root;
 };
-
 vector<Root> roots;
 
 
@@ -40,7 +39,7 @@ SDL_Surface *gss;
 glyphSheetInfo gsi;
 
 struct textBlock {
-	uint *text;
+	vector<uint> text;
 	uint w;
 	uint h;
 };

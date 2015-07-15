@@ -1,2 +1,2 @@
 #!/bin/bash
-valgrind --suppressions=vg.supp --leak-check=full ./ShaderPunk
+valgrind --suppressions=vg.supp --leak-check=full --gen-suppressions=all ./ShaderPunk
