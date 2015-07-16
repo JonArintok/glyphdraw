@@ -210,19 +210,21 @@ int main(int argc, char* argv[]) {
 	
 	bool running      = true;
 	bool shouldRedraw = true;
-	uint curFrame = 1;
+	uint curFrame = 0;
 	while (running) {
+		curFrame++;
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case SDL_QUIT: running = false; break;
 				case SDL_WINDOWEVENT:
 					if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
-						shouldRedraw = true;
+						SDL_UpdateWindowSurface(window);
+						checkSDLerror(__LINE__, __FILE__);
 					}
 					break;
 				case SDL_MOUSEMOTION:
-					cout << "pos:" << event.motion.x << ", " << event.motion.y << endl;
+					cout << "pos: " << event.motion.x << ", " << event.motion.y << endl;
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 					switch (event.button.button) {
@@ -316,9 +318,7 @@ int main(int argc, char* argv[]) {
 			//	}
 			//}
 		}
-		
 		SDL_Delay(10);
-		curFrame++;
 	}
 	
 	CLstatus = clReleaseKernel(kernel);
