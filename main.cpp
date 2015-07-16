@@ -208,8 +208,8 @@ int main(int argc, char* argv[]) {
 	checkSDLerror(__LINE__, __FILE__);
 	
 	
-	bool  running      = true;
-	bool  shouldRedraw = true;
+	bool running      = true;
+	bool shouldRedraw = true;
 	uint curFrame = 1;
 	while (running) {
 		SDL_Event event;
@@ -219,6 +219,35 @@ int main(int argc, char* argv[]) {
 				case SDL_WINDOWEVENT:
 					if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
 						shouldRedraw = true;
+					}
+					break;
+				case SDL_MOUSEMOTION:
+					cout << "pos:" << event.motion.x << ", " << event.motion.y << endl;
+					break;
+				case SDL_MOUSEBUTTONDOWN:
+					switch (event.button.button) {
+						case SDL_BUTTON_LEFT:
+							cout << "left button pressed" << endl;
+							break;
+						case SDL_BUTTON_MIDDLE:
+							cout << "middle button pressed" << endl;
+							break;
+						case SDL_BUTTON_RIGHT:
+							cout << "right button pressed" << endl;
+							break;
+					}
+					break;
+				case SDL_MOUSEBUTTONUP:
+					switch (event.button.button) {
+						case SDL_BUTTON_LEFT:
+							cout << "left button released" << endl;
+							break;
+						case SDL_BUTTON_MIDDLE:
+							cout << "middle button released" << endl;
+							break;
+						case SDL_BUTTON_RIGHT:
+							cout << "right button released" << endl;
+							break;
 					}
 					break;
 			}
@@ -317,5 +346,6 @@ int main(int argc, char* argv[]) {
 	checkSDLerror(__LINE__, __FILE__);
 	SDL_Quit();
 	
+	cout << "exited normally" << endl;
 	exit(0);
 }
