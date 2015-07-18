@@ -208,6 +208,31 @@ int main(int argc, char* argv[]) {
 	checkSDLerror(__LINE__, __FILE__);
 	
 	
+	
+	
+	
+	
+	
+	
+	int scrollPosX = 0;
+	int scrollPosY = 0;
+	int pScrollPosX = 0;
+	int pScrollPosY = 0;
+	int cursPosX;
+	int cursPosY;
+	int pCursPosX;
+	int pCursPosY;
+	bool inDrag = false;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	bool running      = true;
 	bool shouldRedraw = true;
 	uint curFrame = 0;
@@ -224,32 +249,27 @@ int main(int argc, char* argv[]) {
 					}
 					break;
 				case SDL_MOUSEMOTION:
-					cout << "pos: " << event.motion.x << ", " << event.motion.y << endl;
+					pCursPosX = cursPosX;
+					pCursPosY = cursPosY;
+					cursPosX  = event.motion.x;
+					cursPosY  = event.motion.y;
+					if (inDrag) {
+						pScrollPosX = scrollPosX;
+						pScrollPosY = scrollPosY;
+						scrollPosX  = pScrollPosX + (cursPosX - pCursPosX);
+						scrollPosY  = pScrollPosY + (cursPosY - pCursPosY);
+						shouldRedraw = true;
+						cout<<"scrollPos: "<<pScrollPosX<<", "<<pScrollPosY<<endl;
+					}
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 					switch (event.button.button) {
-						case SDL_BUTTON_LEFT:
-							cout << "left button pressed" << endl;
-							break;
-						case SDL_BUTTON_MIDDLE:
-							cout << "middle button pressed" << endl;
-							break;
-						case SDL_BUTTON_RIGHT:
-							cout << "right button pressed" << endl;
-							break;
+						case SDL_BUTTON_LEFT: inDrag = true; break;
 					}
 					break;
 				case SDL_MOUSEBUTTONUP:
 					switch (event.button.button) {
-						case SDL_BUTTON_LEFT:
-							cout << "left button released" << endl;
-							break;
-						case SDL_BUTTON_MIDDLE:
-							cout << "middle button released" << endl;
-							break;
-						case SDL_BUTTON_RIGHT:
-							cout << "right button released" << endl;
-							break;
+						case SDL_BUTTON_LEFT: inDrag = false; break;
 					}
 					break;
 			}
