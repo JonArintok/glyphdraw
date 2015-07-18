@@ -14,28 +14,6 @@ using namespace std;
 
 
 int main(int argc, char* argv[]) {
-	{
-	uint2 a = uint2(2,4);
-	uint2 b = uint2(2,2);
-	uint2 da = a*b;
-	uint2 a2 = uint2(2,4);
-	cout << "a*b: " << da.x << ", " << da.y << endl;
-	cout << "a!=b: " << (a!=b) << endl;
-	cout << "a==a2: " << (a==a2) << endl;
-	cout << "sizeof(uint2): " << sizeof(uint2) << endl;
-	}{
-	cout << endl;
-	int2 a = int2(2,4);
-	int2 b = int2(2,2);
-	int2 da = a*b;
-	int2 a2 = int2(2,4);
-	cout << "a*b: " << da.x << ", " << da.y << endl;
-	cout << "a!=b: " << (a!=b) << endl;
-	cout << "a==a2: " << (a==a2) << endl;
-	cout << "sizeof(int2): " << sizeof(int2) << endl;
-	}
-	return 0;
-	
 	
 	const uint videoW    = 1280;
 	const uint videoH    =  720;
