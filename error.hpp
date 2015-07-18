@@ -77,7 +77,7 @@ const char *cl_getErrorString(cl_int error) {
 
 
 cl_int CLstatus = CL_SUCCESS;
-void checkCLerror(uint line, const char *sourcePath) {
+void checkCLerror(int line, const char *sourcePath) {
 	if (CLstatus == CL_SUCCESS) return;
 	cout << "OpenCL error at line " << line << " in " << sourcePath << endl 
 	<< cl_getErrorString(CLstatus) << endl;
@@ -85,7 +85,7 @@ void checkCLerror(uint line, const char *sourcePath) {
 }
 
 
-void checkSDLerror(uint line, const char *sourcePath) {
+void checkSDLerror(int line, const char *sourcePath) {
 	const char *error = SDL_GetError();
 	if (!error || !error[0]) return;
 	cout << "SDL error at line " << line << " in " << sourcePath << endl 
