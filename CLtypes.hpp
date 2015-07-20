@@ -6,6 +6,7 @@ typedef uint32_t uint;
 struct dt {\
 	st x;\
 	st y;\
+	dt () {x = 0; y = 0;}\
 	dt (st xIn, st yIn) : x(xIn), y(yIn) {}\
 	dt operator + (dt b) {return dt(x + b.x, y + b.y);}\
 	dt operator - (dt b) {return dt(x - b.x, y - b.y);}\
@@ -15,6 +16,7 @@ struct dt {\
 	dt operator ^ (dt b) {return dt(x ^ b.x, y ^ b.y);}\
 	bool operator == (dt b) {return x == b.x  &&  y == b.y;}\
 	bool operator != (dt b) {return x != b.x  ||  y != b.y;}\
+	uint pro() {return x*y;}\
 };
 
 __pair(int2, int)

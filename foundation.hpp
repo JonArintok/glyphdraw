@@ -39,8 +39,7 @@ glyphSheetInfo gsi;
 
 struct textBlock {
 	vector<uint> text;
-	uint w;
-	uint h;
+	uint2 size;
 };
 textBlock UItextBlock;
 

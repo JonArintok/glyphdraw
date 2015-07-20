@@ -15,9 +15,7 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 	
-	const uint videoW    = 1280;
-	const uint videoH    =  720;
-	const uint videoSize = videoW * videoH;
+	const uint2 videoSize = uint2(1280, 720);
 	
 	const cl_uint    maxDevices = 8;
 	cl_device_id     computeDevices[maxDevices];
@@ -39,8 +37,8 @@ int main(int argc, char* argv[]) {
 		cl_image_desc outputImageDesc;
 		memset(&outputImageDesc, '\0', sizeof(cl_image_desc));
 		outputImageDesc.image_type   = CL_MEM_OBJECT_IMAGE2D;
-		outputImageDesc.image_width  = videoW;
-		outputImageDesc.image_height = videoH;
+		outputImageDesc.image_width  = videoSize.x;
+		outputImageDesc.image_height = videoSize.y;
 		outputImage = clCreateImage(
 			context,               //cl_context             context,
 			CL_MEM_WRITE_ONLY,     //cl_mem_flags           flags,
@@ -53,10 +51,8 @@ int main(int argc, char* argv[]) {
 	}
 	
 	const char *bmp_path = "GS_0000032-0000127_032x003_010x023_hermit.bmp";
-	gsi.glyphW = 10;
-	gsi.glyphH = 23;
-	gsi.colCount = 32;
-	gsi.rowCount =  3;
+	gsi.glyphSize  = uint2(10, 23);
+	gsi.glyphCount = uint2(32, 3);
 	gsi.unicodeFirst =  32;
 	gsi.unicodeLast  = 127;
 	gss = SDL_LoadBMP(bmp_path);
@@ -98,7 +94,7 @@ int main(int argc, char* argv[]) {
 	
 	buildsomeroots();
 	
-	size_t UItextSize = sizeof(uint) * UItextBlock.w * UItextBlock.h;
+	size_t UItextSize = sizeof(uint) * UItextBlock.size.pro();
 	cl_mem UItext_clmem = clCreateBuffer(
 		context, 
 		CL_MEM_READ_ONLY, 
@@ -142,12 +138,12 @@ int main(int argc, char* argv[]) {
 	checkCLerror(__LINE__, __FILE__);
 	
 #if kernelInspectArgIndex
-	vector<int> kernelInspect(videoSize);
-	for (uint i = 0; i < videoSize; i++) kernelInspect[i] = 1234;
+	vector<int> kernelInspect(videoSize.Pro());
+	for (uint i = 0; i < videoSize.Pro(); i++) kernelInspect[i] = 1234;
 	cl_mem kernelInspect_clmem = clCreateBuffer(
 		context, 
 		CL_MEM_WRITE_ONLY, 
-		sizeof(int)*videoSize, 
+		sizeof(int)*videoSize.Pro(), 
 		NULL,
 		&CLstatus
 	);
@@ -157,7 +153,7 @@ int main(int argc, char* argv[]) {
 		kernelInspect_clmem,           //cl_mem           buffer,
 		CL_TRUE,                       //cl_bool          blocking_write,
 		0,                             //size_t           offset,
-		sizeof(int)*videoSize,         //size_t           cb,
+		sizeof(int)*videoSize.Pro(),   //size_t           cb,
 		(void*)kernelInspect.data(),   //const void      *ptr,
 		0,                             //cl_uint          num_events_in_wait_list,
 		NULL,                          //const cl_event  *event_wait_list,
@@ -166,19 +162,17 @@ int main(int argc, char* argv[]) {
 	checkCLerror(__LINE__, __FILE__);
 #endif
 	
-	CLstatus = clSetKernelArg(kernel, 0, sizeof(uint), (void*)&UItextBlock.w);
-	checkCLerror(__LINE__, __FILE__);
-	CLstatus = clSetKernelArg(kernel, 1, sizeof(uint), (void*)&UItextBlock.h);
+	CLstatus = clSetKernelArg(kernel, 0, sizeof(uint2), (void*)&UItextBlock.size);
 	checkCLerror(__LINE__, __FILE__);
 	
-	CLstatus = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&UItext_clmem);
+	CLstatus = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&UItext_clmem);
 	checkCLerror(__LINE__, __FILE__);
-	CLstatus = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&gsi_clmem);
+	CLstatus = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&gsi_clmem);
 	checkCLerror(__LINE__, __FILE__);
 	
-	CLstatus = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&glyphSheet);
+	CLstatus = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&glyphSheet);
 	checkCLerror(__LINE__, __FILE__);
-	CLstatus = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&outputImage);
+	CLstatus = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&outputImage);
 	checkCLerror(__LINE__, __FILE__);
 	
 #if kernelInspectArgIndex
@@ -198,8 +192,8 @@ int main(int argc, char* argv[]) {
 		"ShaderPunk",              //const char* title,
 		SDL_WINDOWPOS_UNDEFINED,   //int         x,
 		SDL_WINDOWPOS_UNDEFINED,   //int         y,
-		videoW,                    //int         w,
-		videoH,                    //int         h,
+		videoSize.x,               //int         w,
+		videoSize.y,               //int         h,
 		0                          //Uint32      flags
 	);
 	checkSDLerror(__LINE__, __FILE__);
@@ -209,31 +203,11 @@ int main(int argc, char* argv[]) {
 	}
 	checkSDLerror(__LINE__, __FILE__);
 	
-	
-	
-	
-	
-	
-	
-	
-	int scrollPosX = 0;
-	int scrollPosY = 0;
-	int pScrollPosX = 0;
-	int pScrollPosY = 0;
-	int cursPosX;
-	int cursPosY;
-	int pCursPosX;
-	int pCursPosY;
+	int2 scrollPos  = int2(0, 0);
+	int2 pScrollPos = int2(0, 0);
+	int2 cursPos;
+	int2 pCursPos;
 	bool inDrag = false;
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	bool running      = true;
 	bool shouldRedraw = true;
@@ -251,17 +225,13 @@ int main(int argc, char* argv[]) {
 					}
 					break;
 				case SDL_MOUSEMOTION:
-					pCursPosX = cursPosX;
-					pCursPosY = cursPosY;
-					cursPosX  = event.motion.x;
-					cursPosY  = event.motion.y;
+					pCursPos = cursPos;
+					cursPos = int2(event.motion.x, event.motion.y);
 					if (inDrag) {
-						pScrollPosX = scrollPosX;
-						pScrollPosY = scrollPosY;
-						scrollPosX  = pScrollPosX + (cursPosX - pCursPosX);
-						scrollPosY  = pScrollPosY + (cursPosY - pCursPosY);
+						pScrollPos = scrollPos;
+						scrollPos  = pScrollPos + (cursPos - pCursPos);
 						shouldRedraw = true;
-						cout<<"scrollPos: "<<pScrollPosX<<", "<<pScrollPosY<<endl;
+						cout<<"scrollPos: "<<pScrollPos.x<<", "<<pScrollPos.y<<endl;
 					}
 					break;
 				case SDL_MOUSEBUTTONDOWN:
@@ -280,7 +250,7 @@ int main(int argc, char* argv[]) {
 		if (shouldRedraw) {
 			shouldRedraw = false;
 			
-			size_t globalWorkSize[] = {videoW, videoH};
+			size_t globalWorkSize[] = {videoSize.x, videoSize.y};
 			CLstatus = clEnqueueNDRangeKernel(
 				commandQueue,       //cl_command_queue command_queue,
 				kernel,             //cl_kernel        kernel,
@@ -295,7 +265,7 @@ int main(int argc, char* argv[]) {
 			checkCLerror(__LINE__, __FILE__);
 			
 			size_t origin[] = {0, 0, 0};
-			size_t region[] = {videoW, videoH, 1};
+			size_t region[] = {videoSize.x, videoSize.y, 1};
 			CLstatus = clEnqueueReadImage(
 				commandQueue,       //cl_command_queue command_queue,
 				outputImage,        //cl_mem           image,
@@ -321,7 +291,7 @@ int main(int argc, char* argv[]) {
 				kernelInspect_clmem,          //cl_mem           buffer,
 				CL_TRUE,                      //cl_bool          blocking_read,
 				0,                            //size_t           offset,
-				videoSize*sizeof(uint32_t),   //size_t           cb,
+				videoSize.Pro()*sizeof(uint32_t),   //size_t           cb,
 				kernelInspect.data(),         //void            *ptr,
 				0,                            //cl_uint          num_events_in_wait_list,
 				NULL,                         //const cl_event  *event_wait_list,
@@ -332,9 +302,9 @@ int main(int argc, char* argv[]) {
 			for (uint row = 0; row < 3; row++) {
 				cout << endl << endl << "row: " << row << endl;
 				for (
-					uint i = videoW * gsi.glyphH * row; 
-					i < videoW * gsi.glyphH * row + gss->w;
-					i += gsi.glyphW
+					uint i = videoSize.x * gsi.glyphSize.y * row; 
+					i < videoSize.x * gsi.glyphSize.y * row + gss->w;
+					i += gsi.glyphSize.x
 				) {
 					cout << "kernelInspect[" << i << "]: " << kernelInspect[i] << endl;
 				}

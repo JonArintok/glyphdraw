@@ -8,29 +8,28 @@ __constant sampler_t glyphSheetSampler =
 ;
 
 __kernel void UIshader(
-	private    uint            textW,       //0
-	private    uint            textH,       //1
-	constant   uint           *text,        //2
-	constant   glyphSheetInfo *gsi,         //3
-	read_only  image2d_t       glyphSheet,  //4
-	write_only image2d_t       out          //5
+	private    uint2           textSize,    //0
+	constant   uint           *text,        //1
+	constant   glyphSheetInfo *gsi,         //2
+	read_only  image2d_t       glyphSheet,  //3
+	write_only image2d_t       out          //4
 #if kernelInspectArgIndex
-	, global     int            *inspect      //6
+	, global     int            *inspect      //5
 #endif
 ) {
 	const int2 dim = {get_global_size(0), get_global_size(1)};
 	const int2 pos = {get_global_id(0), get_global_id(1)};
-	const int2 textPos = {pos.x/gsi->glyphW, pos.y/gsi->glyphH};
-	if (textPos.x >= textW  ||  textPos.y >= textH) {
+	const int2 textPos = {pos.x/gsi->glyphSize.x, pos.y/gsi->glyphSize.y};
+	if (textPos.x >= textSize.x  ||  textPos.y >= textSize.y) {
 		write_imagef(out, pos, backColor);
 		return;
 	}
-	const int glyphIndex = text[(textPos.y * textW + textPos.x)] - gsi->unicodeFirst;
+	const int glyphIndex = text[(textPos.y * textSize.x + textPos.x)] - gsi->unicodeFirst;
 	
-	const int glyphIndexInBounds = glyphIndex < gsi->colCount * gsi->rowCount;
+	const int glyphIndexInBounds = glyphIndex < gsi->glyphCount.x * gsi->glyphCount.y;
 	const int2 glyphSheetPos = {
-		(glyphIndex % gsi->colCount) * glyphIndexInBounds, 
-		(glyphIndex / gsi->colCount) * glyphIndexInBounds
+		(glyphIndex % gsi->glyphCount.x) * glyphIndexInBounds, 
+		(glyphIndex / gsi->glyphCount.x) * glyphIndexInBounds
 	};
 	
 #if kernelInspectArgIndex
@@ -39,8 +38,8 @@ __kernel void UIshader(
 #endif
 	
 	const int2 glyphSheetPixPos = {
-		(glyphSheetPos.x * gsi->glyphW) + (pos.x % gsi->glyphW),
-		(glyphSheetPos.y * gsi->glyphH) + (pos.y % gsi->glyphH)
+		(glyphSheetPos.x * gsi->glyphSize.x) + (pos.x % gsi->glyphSize.x),
+		(glyphSheetPos.y * gsi->glyphSize.y) + (pos.y % gsi->glyphSize.y)
 	};
 	float4 color = read_imagef(glyphSheet, glyphSheetSampler, glyphSheetPixPos);
 	write_imagef(out, pos, color);

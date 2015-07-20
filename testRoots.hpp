@@ -7,8 +7,8 @@ int uintVecFromString(vector<uint> &dest, const char *source) {
 /*
 void printTextBlock() {
 	uint i = 0;
-	for (uint row = 0; row < UItextBlock.h; row++) {
-		for (uint col = 0; col < UItextBlock.w; col++, i++) {
+	for (uint row = 0; row < UItextBlock.size.y; row++) {
+		for (uint col = 0; col < UItextBlock.size.x; col++, i++) {
 			uchar c = (uchar)UItextBlock.text[i];
 			cout << c;
 		}
@@ -29,14 +29,14 @@ void buildsomeroots() {
 	roots[1].color = 0x00ff00ff;
 	roots[2].color = 0x0000ffff;
 	
-	UItextBlock.w = 0;
-	UItextBlock.h = roots.size();
+	UItextBlock.size.x = 0;
+	UItextBlock.size.y = roots.size();
 	for (uint i = 0; i < roots.size(); i++) {
-		if (roots[i].text.size() > UItextBlock.w) {
-			UItextBlock.w = roots[i].text.size();
+		if (roots[i].text.size() > UItextBlock.size.x) {
+			UItextBlock.size.x = roots[i].text.size();
 		}
 	}
-	UItextBlock.text.resize(UItextBlock.w * UItextBlock.h);
+	UItextBlock.text.resize(UItextBlock.size.x * UItextBlock.size.y);
 	uint i = 0;
 	for (uint row = 0; row < roots.size(); row++) {
 		uint col = 0;
@@ -50,7 +50,7 @@ void buildsomeroots() {
 			}
 			UItextBlock.text[i] = roots[row].text[col];
 		}
-		for (; col < UItextBlock.w; col++, i++) {
+		for (; col < UItextBlock.size.x; col++, i++) {
 			UItextBlock.text[i] = ' ';
 		}
 	}
