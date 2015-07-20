@@ -13,10 +13,12 @@ __kernel void UIshader(
 	constant   uint           *text,        //2
 	constant   glyphSheetInfo *gsi,         //3
 	read_only  image2d_t       glyphSheet,  //4
-	write_only image2d_t       out,         //5
-	global     int            *inspect      //6
+	write_only image2d_t       out          //5
+#if kernelInspectArgIndex
+	, global     int            *inspect      //6
+#endif
 ) {
-	//const int2 dim = {get_global_size(0), get_global_size(1)};
+	const int2 dim = {get_global_size(0), get_global_size(1)};
 	const int2 pos = {get_global_id(0), get_global_id(1)};
 	const int2 textPos = {pos.x/gsi->glyphW, pos.y/gsi->glyphH};
 	if (textPos.x >= textW  ||  textPos.y >= textH) {
@@ -31,8 +33,10 @@ __kernel void UIshader(
 		(glyphIndex / gsi->colCount) * glyphIndexInBounds
 	};
 	
-	//const int linearPos = pos.y * dim.x + pos.x;
-	//inspect[linearPos] = glyphSheetPos.y;
+#if kernelInspectArgIndex
+	const int linearPos = pos.y * dim.x + pos.x;
+	inspect[linearPos] = glyphSheetPos.y;
+#endif
 	
 	const int2 glyphSheetPixPos = {
 		(glyphSheetPos.x * gsi->glyphW) + (pos.x % gsi->glyphW),

@@ -141,6 +141,7 @@ int main(int argc, char* argv[]) {
 	);
 	checkCLerror(__LINE__, __FILE__);
 	
+#if kernelInspectArgIndex
 	vector<int> kernelInspect(videoSize);
 	for (uint i = 0; i < videoSize; i++) kernelInspect[i] = 1234;
 	cl_mem kernelInspect_clmem = clCreateBuffer(
@@ -163,7 +164,7 @@ int main(int argc, char* argv[]) {
 		NULL                           //cl_event        *event
 	);
 	checkCLerror(__LINE__, __FILE__);
-	
+#endif
 	
 	CLstatus = clSetKernelArg(kernel, 0, sizeof(uint), (void*)&UItextBlock.w);
 	checkCLerror(__LINE__, __FILE__);
@@ -180,13 +181,15 @@ int main(int argc, char* argv[]) {
 	CLstatus = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&outputImage);
 	checkCLerror(__LINE__, __FILE__);
 	
+#if kernelInspectArgIndex
 	CLstatus = clSetKernelArg(
 		kernel, 
-		6, 
+		kernelInspectArgIndex, 
 		sizeof(cl_mem),
 		(void*)&kernelInspect_clmem
 	);
 	checkCLerror(__LINE__, __FILE__);
+#endif
 	
 	
 	SDL_Init(SDL_INIT_VIDEO);
@@ -312,7 +315,7 @@ int main(int argc, char* argv[]) {
 			SDL_UpdateWindowSurface(window);
 			checkSDLerror(__LINE__, __FILE__);
 			
-			
+#if kernelInspectArgIndex
 			CLstatus = clEnqueueReadBuffer(
 				commandQueue,                 //cl_command_queue command_queue,
 				kernelInspect_clmem,          //cl_mem           buffer,
@@ -325,17 +328,18 @@ int main(int argc, char* argv[]) {
 				NULL                          //cl_event        *event
 			);
 			checkCLerror(__LINE__, __FILE__);
-			//cout << endl << endl << "glyphSheetPos.y" << endl << endl;
-			//for (uint row = 0; row < 3; row++) {
-			//	cout << endl << endl << "row: " << row << endl;
-			//	for (
-			//		uint i = videoW * gsi.glyphH * row; 
-			//		i < videoW * gsi.glyphH * row + gss->w;
-			//		i += gsi.glyphW
-			//	) {
-			//		cout << "kernelInspect[" << i << "]: " << kernelInspect[i] << endl;
-			//	}
-			//}
+			cout << endl << endl << "glyphSheetPos.y" << endl << endl;
+			for (uint row = 0; row < 3; row++) {
+				cout << endl << endl << "row: " << row << endl;
+				for (
+					uint i = videoW * gsi.glyphH * row; 
+					i < videoW * gsi.glyphH * row + gss->w;
+					i += gsi.glyphW
+				) {
+					cout << "kernelInspect[" << i << "]: " << kernelInspect[i] << endl;
+				}
+			}
+#endif
 		}
 		SDL_Delay(10);
 	}
@@ -352,6 +356,10 @@ int main(int argc, char* argv[]) {
 	checkCLerror(__LINE__, __FILE__);
 	CLstatus = clReleaseMemObject(outputImage);
 	checkCLerror(__LINE__, __FILE__);
+#if kernelInspectArgIndex
+	CLstatus = clReleaseMemObject(kernelInspect_clmem);
+	checkCLerror(__LINE__, __FILE__);
+#endif
 	CLstatus = clReleaseCommandQueue(commandQueue);
 	checkCLerror(__LINE__, __FILE__);
 	CLstatus = clReleaseContext(context);
