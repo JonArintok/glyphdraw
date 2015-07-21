@@ -1,14 +1,14 @@
 
-int uintVecFromString(vector<uint> &dest, const char *source) {
-	uint i = 0;
+int uintVecFromString(vector<int> &dest, const char *source) {
+	int i = 0;
 	while (source[i]) dest.push_back(source[i++]);
 	return i;
 }
 /*
 void printTextBlock() {
-	uint i = 0;
-	for (uint row = 0; row < UItextBlock.size.y; row++) {
-		for (uint col = 0; col < UItextBlock.size.x; col++, i++) {
+	int i = 0;
+	for (uint32_t row = 0; row < UItextBlock.size.y; row++) {
+		for (uint32_t col = 0; col < UItextBlock.size.x; col++, i++) {
 			uchar c = (uchar)UItextBlock.text[i];
 			cout << c;
 		}
@@ -31,15 +31,15 @@ void buildsomeroots() {
 	
 	UItextBlock.size.x = 0;
 	UItextBlock.size.y = roots.size();
-	for (uint i = 0; i < roots.size(); i++) {
-		if (roots[i].text.size() > UItextBlock.size.x) {
+	for (uint32_t i = 0; i < roots.size(); i++) {
+		if (roots[i].text.size() > (uint32_t)UItextBlock.size.x) {
 			UItextBlock.size.x = roots[i].text.size();
 		}
 	}
 	UItextBlock.text.resize(UItextBlock.size.x * UItextBlock.size.y);
-	uint i = 0;
-	for (uint row = 0; row < roots.size(); row++) {
-		uint col = 0;
+	uint32_t i = 0;
+	for (uint32_t row = 0; row < roots.size(); row++) {
+		uint32_t col = 0;
 		for (; col < roots[row].text.size(); col++, i++) {
 			if (
 				roots[row].text[col] < gsi.unicodeFirst || 
@@ -50,7 +50,7 @@ void buildsomeroots() {
 			}
 			UItextBlock.text[i] = roots[row].text[col];
 		}
-		for (; col < UItextBlock.size.x; col++, i++) {
+		for (; col < (uint32_t)UItextBlock.size.x; col++, i++) {
 			UItextBlock.text[i] = ' ';
 		}
 	}

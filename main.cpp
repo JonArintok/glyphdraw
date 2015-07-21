@@ -15,7 +15,7 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 	
-	const uint2 videoSize = uint2(1280, 720);
+	const int2 videoSize = int2(1280, 720);
 	
 	const cl_uint    maxDevices = 8;
 	cl_device_id     computeDevices[maxDevices];
@@ -51,8 +51,8 @@ int main(int argc, char* argv[]) {
 	}
 	
 	const char *bmp_path = "GS_0000032-0000127_032x003_010x023_hermit.bmp";
-	gsi.glyphSize  = uint2(10, 23);
-	gsi.glyphCount = uint2(32, 3);
+	gsi.glyphSize  = int2(10, 23);
+	gsi.glyphCount = int2(32, 3);
 	gsi.unicodeFirst =  32;
 	gsi.unicodeLast  = 127;
 	gss = SDL_LoadBMP(bmp_path);
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
 	
 	buildsomeroots();
 	
-	size_t UItextSize = sizeof(uint) * UItextBlock.size.pro();
+	size_t UItextSize = sizeof(int) * UItextBlock.size.pro();
 	cl_mem UItext_clmem = clCreateBuffer(
 		context, 
 		CL_MEM_READ_ONLY, 
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 	
 #if kernelInspectArgIndex
 	vector<int> kernelInspect(videoSize.Pro());
-	for (uint i = 0; i < videoSize.Pro(); i++) kernelInspect[i] = 1234;
+	for (int i = 0; i < videoSize.Pro(); i++) kernelInspect[i] = 1234;
 	cl_mem kernelInspect_clmem = clCreateBuffer(
 		context, 
 		CL_MEM_WRITE_ONLY, 
@@ -162,17 +162,17 @@ int main(int argc, char* argv[]) {
 	checkCLerror(__LINE__, __FILE__);
 #endif
 	
-	CLstatus = clSetKernelArg(kernel, 0, sizeof(uint2), (void*)&UItextBlock.size);
+	CLstatus = clSetKernelArg(kernel, 1, sizeof(int2), (void*)&UItextBlock.size);
 	checkCLerror(__LINE__, __FILE__);
 	
-	CLstatus = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&UItext_clmem);
+	CLstatus = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&UItext_clmem);
 	checkCLerror(__LINE__, __FILE__);
-	CLstatus = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&gsi_clmem);
+	CLstatus = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&gsi_clmem);
 	checkCLerror(__LINE__, __FILE__);
 	
-	CLstatus = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&glyphSheet);
+	CLstatus = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&glyphSheet);
 	checkCLerror(__LINE__, __FILE__);
-	CLstatus = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&outputImage);
+	CLstatus = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&outputImage);
 	checkCLerror(__LINE__, __FILE__);
 	
 #if kernelInspectArgIndex
@@ -203,15 +203,15 @@ int main(int argc, char* argv[]) {
 	}
 	checkSDLerror(__LINE__, __FILE__);
 	
-	int2 scrollPos  = int2(0, 0);
-	int2 pScrollPos = int2(0, 0);
+	int2 scrollPos;
+	int2 pScrollPos;
 	int2 cursPos;
 	int2 pCursPos;
 	bool inDrag = false;
 	
 	bool running      = true;
 	bool shouldRedraw = true;
-	uint curFrame = 0;
+	int curFrame = 0;
 	while (running) {
 		curFrame++;
 		SDL_Event event;
@@ -248,9 +248,11 @@ int main(int argc, char* argv[]) {
 		}
 		
 		if (shouldRedraw) {
-			shouldRedraw = false;
 			
-			size_t globalWorkSize[] = {videoSize.x, videoSize.y};
+			CLstatus = clSetKernelArg(kernel, 0, sizeof(int2), (void*)&scrollPos);
+			checkCLerror(__LINE__, __FILE__);
+			
+			size_t globalWorkSize[] = {(size_t)videoSize.x, (size_t)videoSize.y};
 			CLstatus = clEnqueueNDRangeKernel(
 				commandQueue,       //cl_command_queue command_queue,
 				kernel,             //cl_kernel        kernel,
@@ -265,7 +267,7 @@ int main(int argc, char* argv[]) {
 			checkCLerror(__LINE__, __FILE__);
 			
 			size_t origin[] = {0, 0, 0};
-			size_t region[] = {videoSize.x, videoSize.y, 1};
+			size_t region[] = {(size_t)videoSize.x, (size_t)videoSize.y, 1};
 			CLstatus = clEnqueueReadImage(
 				commandQueue,       //cl_command_queue command_queue,
 				outputImage,        //cl_mem           image,
@@ -291,7 +293,7 @@ int main(int argc, char* argv[]) {
 				kernelInspect_clmem,          //cl_mem           buffer,
 				CL_TRUE,                      //cl_bool          blocking_read,
 				0,                            //size_t           offset,
-				videoSize.Pro()*sizeof(uint32_t),   //size_t           cb,
+				sizeof(int)*videoSize.Pro(), //size_t           cb,
 				kernelInspect.data(),         //void            *ptr,
 				0,                            //cl_uint          num_events_in_wait_list,
 				NULL,                         //const cl_event  *event_wait_list,
@@ -299,10 +301,10 @@ int main(int argc, char* argv[]) {
 			);
 			checkCLerror(__LINE__, __FILE__);
 			cout << endl << endl << "glyphSheetPos.y" << endl << endl;
-			for (uint row = 0; row < 3; row++) {
+			for (int row = 0; row < 3; row++) {
 				cout << endl << endl << "row: " << row << endl;
 				for (
-					uint i = videoSize.x * gsi.glyphSize.y * row; 
+					int i = videoSize.x * gsi.glyphSize.y * row; 
 					i < videoSize.x * gsi.glyphSize.y * row + gss->w;
 					i += gsi.glyphSize.x
 				) {
@@ -310,6 +312,7 @@ int main(int argc, char* argv[]) {
 				}
 			}
 #endif
+			shouldRedraw = false;
 		}
 		SDL_Delay(10);
 	}

@@ -53,7 +53,7 @@ void initClProgram(
 	const char *sourcesData [paths.size()];
 	size_t      sourceSizes [paths.size()];
 	cout << "building program from files:" << endl;
-	for (uint i = 0; i < paths.size(); i++) {
+	for (uint32_t i = 0; i < paths.size(); i++) {
 		cout << '\t' << paths[i] << endl;
 		ifstream sourceFile(paths[i]);
 		stringstream sourceStream;

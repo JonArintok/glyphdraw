@@ -25,8 +25,8 @@ enum RootType {
 	rootTypeCount
 };
 struct Root {
-	vector<uint> text;
-	uint         color;
+	vector<int> text;
+	int         color;
 	RootType     rootType;
 	RootUnion    root;
 };
@@ -38,8 +38,8 @@ SDL_Surface *gss;
 glyphSheetInfo gsi;
 
 struct textBlock {
-	vector<uint> text;
-	uint2 size;
+	vector<int> text;
+	int2 size;
 };
 textBlock UItextBlock;
 
