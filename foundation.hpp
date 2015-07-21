@@ -4,31 +4,31 @@ struct Function {
 };
 
 struct Buffer {
-	vector<Buffer> *dependents;
-	bool needReeval;
+  vector<Buffer> *dependents;
+  bool needReeval;
 };
 struct Variable : Buffer {
 };
 struct Array : Buffer {
-	bool isShaded;
+  bool isShaded;
 };
 
 union RootUnion {
-	Variable v;
-	Array    a;
-	Function f;
+  Variable v;
+  Array    a;
+  Function f;
 };
 enum RootType {
-	variable,
-	array,
-	function,
-	rootTypeCount
+  variable,
+  array,
+  function,
+  rootTypeCount
 };
 struct Root {
-	vector<int> text;
-	int         color;
-	RootType     rootType;
-	RootUnion    root;
+  vector<int> text;
+  int         color;
+  RootType     rootType;
+  RootUnion    root;
 };
 vector<Root> roots;
 
@@ -38,8 +38,8 @@ SDL_Surface *gss;
 glyphSheetInfo gsi;
 
 struct textBlock {
-	vector<int> text;
-	int2 size;
+  vector<int> text;
+  int2 size;
 };
 textBlock UItextBlock;
 
