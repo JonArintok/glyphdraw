@@ -205,6 +205,7 @@ int main(int argc, char* argv[]) {
 	
 	int2 scrollPos;
 	int2 pScrollPos;
+	int2 scrollVel;
 	int2 cursPos;
 	int2 pCursPos;
 	bool inDrag = false;
@@ -226,17 +227,20 @@ int main(int argc, char* argv[]) {
 					break;
 				case SDL_MOUSEMOTION:
 					pCursPos = cursPos;
-					cursPos = int2(event.motion.x, event.motion.y);
+					cursPos  = int2(event.motion.x, event.motion.y);
 					if (inDrag) {
 						pScrollPos = scrollPos;
 						scrollPos  = pScrollPos + (cursPos - pCursPos);
+						scrollVel   = scrollPos - pScrollPos;
 						shouldRedraw = true;
-						cout<<"scrollPos: "<<pScrollPos.x<<", "<<pScrollPos.y<<endl;
 					}
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 					switch (event.button.button) {
-						case SDL_BUTTON_LEFT: inDrag = true; break;
+						case SDL_BUTTON_LEFT:
+							scrollVel = 0;
+							inDrag = true;
+							break;
 					}
 					break;
 				case SDL_MOUSEBUTTONUP:
@@ -245,6 +249,11 @@ int main(int argc, char* argv[]) {
 					}
 					break;
 			}
+		}
+		if (!inDrag && (scrollVel.x || scrollVel.y)) {
+			pScrollPos = scrollPos;
+			scrollPos += scrollVel;
+			shouldRedraw = true;
 		}
 		
 		if (shouldRedraw) {

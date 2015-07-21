@@ -8,7 +8,7 @@ __constant sampler_t glyphSheetSampler =
 ;
 
 __kernel void UIshader(
-	private    int2            offset,   //0
+	private    int2            offset,      //0
 	private    int2            textSize,    //1
 	constant   int            *text,        //2
 	constant   glyphSheetInfo *gsi,         //3
