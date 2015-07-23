@@ -209,6 +209,8 @@ int main(int argc, char* argv[]) {
   int2 scrollBoundary = UItextBlock.size * gsi.glyphSize;
   if (scrollBoundary.x < videoSize.x) scrollBoundary.x = videoSize.x;
   if (scrollBoundary.y < videoSize.y) scrollBoundary.y = videoSize.y;
+  cout << "scrollBoundary: " << scrollBoundary.x << ", " << scrollBoundary.y << endl;
+  int scrollAccel = 1;
   
   bool inDrag = false;
   bool running      = true;
@@ -251,29 +253,58 @@ int main(int argc, char* argv[]) {
           break;
       }
     }
-    if (!inDrag && (scrollVel.x || scrollVel.y)) {
-      pScrollPos = scrollPos;
-      scrollPos += scrollVel;
+    if (!inDrag) {
       
-      int2 scrollBoundaryBR = scrollPos + scrollBoundary;
+      
       if (scrollPos.x > 0) {
-        scrollPos.x = 0;
-        scrollVel.x = 0;
+        scrollVel.x -= scrollAccel;
+        pScrollPos.x = scrollPos.x;
+        scrollPos.x += scrollVel.x;
+        if (scrollPos.x < 0) {
+          scrollPos.x = 0;
+          scrollVel.x = 0;
+        }
+      }
+      else if (scrollPos.x + scrollBoundary.x  <  videoSize.x) {
+        scrollVel.x += scrollAccel;
+        pScrollPos.x = scrollPos.x;
+        scrollPos.x += scrollVel.x;
+        if (scrollPos.x + scrollBoundary.x  >  videoSize.x) {
+          scrollPos.x = videoSize.x - scrollBoundary.x;
+          scrollVel.x = 0;
+        }
+      }
+      else {
+        pScrollPos.x = scrollPos.x;
+        scrollPos.x += scrollVel.x;
       }
       if (scrollPos.y > 0) {
-        scrollPos.y = 0;
-        scrollVel.y = 0;
+        scrollVel.y -= scrollAccel;
+        pScrollPos.y = scrollPos.y;
+        scrollPos.y += scrollVel.y;
+        if (scrollPos.y < 0) {
+          scrollPos.y = 0;
+          scrollVel.y = 0;
+        }
       }
-      if (scrollBoundaryBR.x < videoSize.x) {
-        scrollPos.x = videoSize.x - scrollBoundary.x;
-        scrollVel.x = 0;
+      else if (scrollPos.y + scrollBoundary.y  <  videoSize.y) {
+        scrollVel.y += scrollAccel;
+        pScrollPos.y = scrollPos.y;
+        scrollPos.y += scrollVel.y;
+        if (scrollPos.y + scrollBoundary.y  >  videoSize.y) {
+          scrollPos.y = videoSize.y - scrollBoundary.y;
+          scrollVel.y = 0;
+        }
       }
-      if (scrollBoundaryBR.y < videoSize.y) {
-        scrollPos.y = videoSize.y - scrollBoundary.y;
-        scrollVel.y = 0;
+      else {
+        pScrollPos.y = scrollPos.y;
+        scrollPos.y += scrollVel.y;
       }
       
-      shouldRedraw = true;
+      
+      
+      
+      if (scrollPos != pScrollPos) shouldRedraw = true;
     }
     
     if (shouldRedraw) {

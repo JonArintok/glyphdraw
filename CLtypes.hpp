@@ -14,6 +14,8 @@ struct dt {\
   dt   operator /  (dt b) {return dt(x / b.x, y / b.y);}\
   dt   operator %  (dt b) {return dt(x % b.x, y % b.y);}\
   dt   operator ^  (dt b) {return dt(x ^ b.x, y ^ b.y);}\
+  bool operator == (dt b) {return x == b.x  &&  y == b.y;}\
+  bool operator != (dt b) {return x != b.x  ||  y != b.y;}\
   dt   operator +  (st b) {return dt(x + b, y + b);}\
   dt   operator -  (st b) {return dt(x - b, y - b);}\
   dt   operator *  (st b) {return dt(x * b, y * b);}\
