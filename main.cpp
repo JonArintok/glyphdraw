@@ -255,12 +255,11 @@ int main(int argc, char* argv[]) {
     }
     if (!inDrag) {
       
-      
       if (scrollPos.x > 0) {
         scrollVel.x -= scrollAccel;
         pScrollPos.x = scrollPos.x;
         scrollPos.x += scrollVel.x;
-        if (scrollPos.x < 0) {
+        if (scrollPos.x <= 0) {
           scrollPos.x = 0;
           scrollVel.x = 0;
         }
@@ -269,7 +268,7 @@ int main(int argc, char* argv[]) {
         scrollVel.x += scrollAccel;
         pScrollPos.x = scrollPos.x;
         scrollPos.x += scrollVel.x;
-        if (scrollPos.x + scrollBoundary.x  >  videoSize.x) {
+        if (scrollPos.x + scrollBoundary.x  >=  videoSize.x) {
           scrollPos.x = videoSize.x - scrollBoundary.x;
           scrollVel.x = 0;
         }
@@ -282,7 +281,7 @@ int main(int argc, char* argv[]) {
         scrollVel.y -= scrollAccel;
         pScrollPos.y = scrollPos.y;
         scrollPos.y += scrollVel.y;
-        if (scrollPos.y < 0) {
+        if (scrollPos.y <= 0) {
           scrollPos.y = 0;
           scrollVel.y = 0;
         }
@@ -291,7 +290,7 @@ int main(int argc, char* argv[]) {
         scrollVel.y += scrollAccel;
         pScrollPos.y = scrollPos.y;
         scrollPos.y += scrollVel.y;
-        if (scrollPos.y + scrollBoundary.y  >  videoSize.y) {
+        if (scrollPos.y + scrollBoundary.y  >=  videoSize.y) {
           scrollPos.y = videoSize.y - scrollBoundary.y;
           scrollVel.y = 0;
         }
@@ -300,9 +299,6 @@ int main(int argc, char* argv[]) {
         pScrollPos.y = scrollPos.y;
         scrollPos.y += scrollVel.y;
       }
-      
-      
-      
       
       if (scrollPos != pScrollPos) shouldRedraw = true;
     }
