@@ -22,13 +22,13 @@ __kernel void UIshader(
   const int2 offsetPos = pos-offset;
   const int2 textPos = offsetPos/gsi->glyphSize;
   if (
-    offsetPos.x < 0  ||  offsetPos.y < 0  ||
-    textPos.x >= textSize.x  ||  textPos.y >= textSize.y
+    offsetPos.x < 0  ||  textPos.x >= textSize.x  ||
+    offsetPos.y < 0  ||  textPos.y >= textSize.y
   ) {
     write_imagef(out, pos, backColor);
     return;
   }
-  const int glyphIndex = text[(textPos.y * textSize.x + textPos.x)] - gsi->unicodeFirst;
+  const int glyphIndex = text[(textPos.y * textSize.x + textPos.x)];
   const int glyphIndexInBounds = glyphIndex < gsi->glyphCount.x * gsi->glyphCount.y;
   const int2 glyphSheetPos = glyphIndexInBounds * (int2)(
     glyphIndex % gsi->glyphCount.x, 

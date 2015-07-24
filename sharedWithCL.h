@@ -5,6 +5,6 @@
 typedef struct {
   int2 glyphSize;
   int2 glyphCount;
-  int  unicodeFirst;
-  int  unicodeLast;
+  //int  unicodeFirst;
+  //int  unicodeLast;
 } glyphSheetInfo;

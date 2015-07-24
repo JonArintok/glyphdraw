@@ -50,11 +50,9 @@ int main(int argc, char* argv[]) {
     checkCLerror(__LINE__, __FILE__);
   }
   
-  const char *bmp_path = "GS_0000032-0000127_032x003_010x023_hermit.bmp";
+  const char *bmp_path = "glyphSheets/hermit_010_023.bmp";
   gsi.glyphSize  = int2(10, 23);
   gsi.glyphCount = int2(32, 3);
-  gsi.unicodeFirst =  32;
-  gsi.unicodeLast  = 127;
   gss = SDL_LoadBMP(bmp_path);
   {
     cl_image_format glyphSheetFormat = {CL_LUMINANCE, CL_UNORM_INT8};
@@ -187,6 +185,7 @@ int main(int argc, char* argv[]) {
   
   
   SDL_Init(SDL_INIT_VIDEO);
+  if (!strcmp(SDL_GetError(), "Unknown touch device")) SDL_ClearError();//?!?
   checkSDLerror(__LINE__, __FILE__);
   SDL_Window *window = SDL_CreateWindow(
     "ShaderPunk",              //const char* title,
@@ -198,7 +197,7 @@ int main(int argc, char* argv[]) {
   );
   checkSDLerror(__LINE__, __FILE__);
   SDL_Surface *windowSrfc = SDL_GetWindowSurface(window);
-  if (!strcmp(SDL_GetError(), "Invalid renderer")) SDL_ClearError();//SDL bug?!?
+  if (!strcmp(SDL_GetError(), "Invalid renderer")) SDL_ClearError();//?!?
   checkSDLerror(__LINE__, __FILE__);
   
   int2 scrollPos;
@@ -209,7 +208,6 @@ int main(int argc, char* argv[]) {
   int2 scrollBoundary = UItextBlock.size * gsi.glyphSize;
   if (scrollBoundary.x < videoSize.x) scrollBoundary.x = videoSize.x;
   if (scrollBoundary.y < videoSize.y) scrollBoundary.y = videoSize.y;
-  cout << "scrollBoundary: " << scrollBoundary.x << ", " << scrollBoundary.y << endl;
   int scrollAccel = 1;
   
   bool inDrag = false;

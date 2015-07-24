@@ -25,7 +25,7 @@ void buildsomeroots() {
   for (uint32_t row = 0; row < (uint32_t)UItextBlock.size.y; row++) {
     uint32_t col = 0;
     for (; col < (uint32_t)UItextBlock.size.x; col++, i++) {
-      UItextBlock.text[i] = 32 + i%95;
+      UItextBlock.text[i] = i%95;
     }
   }
   //printTextBlock();
