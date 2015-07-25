@@ -5,32 +5,32 @@
 #include <CL/cl.h>
 #include <SDL2/SDL.h>
 using namespace std;
-#include "error.hpp"
-#include "CLtypes.hpp"
-#include "sharedWithCL.h"
-#include "foundation.hpp"
-#include "init.hpp"
-#include "testRoots.hpp"
+#include "01_error.hpp"
+#include "02_CLtypes.hpp"
+#include "03_sharedWithCL.h"
+#include "04_initCL.hpp"
+#include "05_foundation.hpp"
+#include "06_testRoots.hpp"
 
 
 int main(int argc, char* argv[]) {
-  
+
   const int2 videoSize = int2(1280, 720);
-  
+
   const cl_uint    maxDevices = 8;
   cl_device_id     computeDevices[maxDevices];
   cl_context       context = NULL;
   cl_command_queue commandQueue = NULL;
   initOpenCL(computeDevices, maxDevices, context, commandQueue);
   checkCLerror(__LINE__, __FILE__);
-  
+
   cl_program program;
-  vector<const char*> paths = {"sharedWithCL.h", "UIshader.cl"};
+  vector<const char*> paths = {"03_sharedWithCL.h", "UIshader.cl"};
   initClProgram(paths, program, context, computeDevices);
   checkCLerror(__LINE__, __FILE__);
   cl_kernel kernel = clCreateKernel(program, "UIshader", &CLstatus);
   checkCLerror(__LINE__, __FILE__);
-  
+
   cl_mem outputImage;
   {
     cl_image_format outputImageFormat = {CL_RGBA, CL_UNORM_INT8};
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     );
     checkCLerror(__LINE__, __FILE__);
   }
-  
+
   const char *bmp_path = "glyphSheets/hermit_010_023.bmp";
   gsi.glyphSize  = int2(10, 23);
   gsi.glyphCount = int2(32, 3);
@@ -89,14 +89,14 @@ int main(int argc, char* argv[]) {
     );
     checkCLerror(__LINE__, __FILE__);
   }
-  
+
   buildsomeroots();
-  
+
   size_t UItextSize = sizeof(int) * UItextBlock.size.pro();
   cl_mem UItext_clmem = clCreateBuffer(
-    context, 
-    CL_MEM_READ_ONLY, 
-    UItextSize, 
+    context,
+    CL_MEM_READ_ONLY,
+    UItextSize,
     NULL,
     &CLstatus
   );
@@ -113,11 +113,11 @@ int main(int argc, char* argv[]) {
     NULL                             //cl_event        *event
   );
   checkCLerror(__LINE__, __FILE__);
-  
+
   cl_mem gsi_clmem = clCreateBuffer(
-    context, 
-    CL_MEM_READ_ONLY, 
-    UItextSize, 
+    context,
+    CL_MEM_READ_ONLY,
+    UItextSize,
     NULL,
     &CLstatus
   );
@@ -134,14 +134,14 @@ int main(int argc, char* argv[]) {
     NULL                      //cl_event        *event
   );
   checkCLerror(__LINE__, __FILE__);
-  
+
 #if kernelInspectArgIndex
   vector<int> kernelInspect(videoSize.Pro());
   for (int i = 0; i < videoSize.Pro(); i++) kernelInspect[i] = 1234;
   cl_mem kernelInspect_clmem = clCreateBuffer(
-    context, 
-    CL_MEM_WRITE_ONLY, 
-    sizeof(int)*videoSize.Pro(), 
+    context,
+    CL_MEM_WRITE_ONLY,
+    sizeof(int)*videoSize.Pro(),
     NULL,
     &CLstatus
   );
@@ -159,31 +159,31 @@ int main(int argc, char* argv[]) {
   );
   checkCLerror(__LINE__, __FILE__);
 #endif
-  
+
   CLstatus = clSetKernelArg(kernel, 1, sizeof(int2), (void*)&UItextBlock.size);
   checkCLerror(__LINE__, __FILE__);
-  
+
   CLstatus = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&UItext_clmem);
   checkCLerror(__LINE__, __FILE__);
   CLstatus = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&gsi_clmem);
   checkCLerror(__LINE__, __FILE__);
-  
+
   CLstatus = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&glyphSheet);
   checkCLerror(__LINE__, __FILE__);
   CLstatus = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&outputImage);
   checkCLerror(__LINE__, __FILE__);
-  
+
 #if kernelInspectArgIndex
   CLstatus = clSetKernelArg(
-    kernel, 
-    kernelInspectArgIndex, 
+    kernel,
+    kernelInspectArgIndex,
     sizeof(cl_mem),
     (void*)&kernelInspect_clmem
   );
   checkCLerror(__LINE__, __FILE__);
 #endif
-  
-  
+
+
   SDL_Init(SDL_INIT_VIDEO);
   if (!strcmp(SDL_GetError(), "Unknown touch device")) SDL_ClearError();//?!?
   checkSDLerror(__LINE__, __FILE__);
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
   SDL_Surface *windowSrfc = SDL_GetWindowSurface(window);
   if (!strcmp(SDL_GetError(), "Invalid renderer")) SDL_ClearError();//?!?
   checkSDLerror(__LINE__, __FILE__);
-  
+
   int2 scrollPos;
   int2 pScrollPos;
   int2 scrollVel;
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
   if (scrollBoundary.x < videoSize.x) scrollBoundary.x = videoSize.x;
   if (scrollBoundary.y < videoSize.y) scrollBoundary.y = videoSize.y;
   int scrollAccel = 1;
-  
+
   bool inDrag = false;
   bool running      = true;
   bool shouldRedraw = true;
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
       }
     }
     if (!inDrag) {
-      
+
       if (scrollPos.x > 0) {
         scrollVel.x -= scrollAccel;
         pScrollPos.x = scrollPos.x;
@@ -297,15 +297,15 @@ int main(int argc, char* argv[]) {
         pScrollPos.y = scrollPos.y;
         scrollPos.y += scrollVel.y;
       }
-      
+
       if (scrollPos != pScrollPos) shouldRedraw = true;
     }
-    
+
     if (shouldRedraw) {
-      
+
       CLstatus = clSetKernelArg(kernel, 0, sizeof(int2), (void*)&scrollPos);
       checkCLerror(__LINE__, __FILE__);
-      
+
       size_t globalWorkSize[] = {(size_t)videoSize.x, (size_t)videoSize.y};
       CLstatus = clEnqueueNDRangeKernel(
         commandQueue,       //cl_command_queue command_queue,
@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
         NULL                //cl_event        *event
       );
       checkCLerror(__LINE__, __FILE__);
-      
+
       size_t origin[] = {0, 0, 0};
       size_t region[] = {(size_t)videoSize.x, (size_t)videoSize.y, 1};
       CLstatus = clEnqueueReadImage(
@@ -336,11 +336,11 @@ int main(int argc, char* argv[]) {
         NULL                //cl_event        *event
       );
       checkCLerror(__LINE__, __FILE__);
-      
-      
+
+
       SDL_UpdateWindowSurface(window);
       checkSDLerror(__LINE__, __FILE__);
-      
+
 #if kernelInspectArgIndex
       CLstatus = clEnqueueReadBuffer(
         commandQueue,                 //cl_command_queue command_queue,
@@ -358,7 +358,7 @@ int main(int argc, char* argv[]) {
       for (int row = 0; row < 3; row++) {
         cout << endl << endl << "row: " << row << endl;
         for (
-          int i = videoSize.x * gsi.glyphSize.y * row; 
+          int i = videoSize.x * gsi.glyphSize.y * row;
           i < videoSize.x * gsi.glyphSize.y * row + gss->w;
           i += gsi.glyphSize.x
         ) {
@@ -370,7 +370,7 @@ int main(int argc, char* argv[]) {
     }
     SDL_Delay(10);
   }
-  
+
   CLstatus = clReleaseKernel(kernel);
   checkCLerror(__LINE__, __FILE__);
   CLstatus = clReleaseProgram(program);
@@ -391,7 +391,7 @@ int main(int argc, char* argv[]) {
   checkCLerror(__LINE__, __FILE__);
   CLstatus = clReleaseContext(context);
   checkCLerror(__LINE__, __FILE__);
-  
+
   SDL_FreeSurface(gss);
   checkSDLerror(__LINE__, __FILE__);
   SDL_FreeSurface(windowSrfc);
@@ -399,7 +399,7 @@ int main(int argc, char* argv[]) {
   SDL_DestroyWindow(window);
   checkSDLerror(__LINE__, __FILE__);
   SDL_Quit();
-  
+
   cout << "exited normally" << endl;
   exit(0);
 }

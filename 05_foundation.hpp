@@ -36,9 +36,7 @@ struct Root {
   RootType    rootType;
   RootUnion   root;
   Root() {}
-  Root(const char *str) {
-    intVecFromString(text, str);
-  }
+  Root(const char *str) {intVecFromString(text, str);}
 };
 vector<Root> roots;
 
@@ -46,6 +44,7 @@ vector<Root> roots;
 cl_mem glyphSheet;
 SDL_Surface *gss;
 glyphSheetInfo gsi;
+const char *glyphSheetMap;
 
 struct textBlock {
   vector<int> text;
