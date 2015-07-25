@@ -1,5 +1,5 @@
 
-#define backColor (float4)(0.5, 0, 0, 1)
+#define backColor (float4)(0.0, 0, 0, 1)
 
 __constant sampler_t glyphSheetSampler = 
   CLK_NORMALIZED_COORDS_FALSE | 

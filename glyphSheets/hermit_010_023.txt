@@ -1,7 +1,4 @@
-bmp         hermit_010_23.bmp
-glyphSize   10 23
-glyphCount  23  3
-map
+hermit_010_023.bmp 10 23 32 3
  !"#$%&'()*+,-./0123456789:;<=>?
 @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_
 `abcdefghijklmnopqrstuvwxyz{|}~ 

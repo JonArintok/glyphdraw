@@ -24,11 +24,21 @@ enum RootType {
   function,
   rootTypeCount
 };
+
+int intVecFromString(vector<int> &dest, const char *source) {
+  int i = 0;
+  while (source[i]) dest.push_back(source[i++]-32);
+  return i;
+}
 struct Root {
   vector<int> text;
   int         color;
-  RootType     rootType;
-  RootUnion    root;
+  RootType    rootType;
+  RootUnion   root;
+  Root() {}
+  Root(const char *str) {
+    intVecFromString(text, str);
+  }
 };
 vector<Root> roots;
 
