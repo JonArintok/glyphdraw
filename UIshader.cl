@@ -1,9 +1,9 @@
 
 #define backColor (float4)(0.0, 0, 0, 1)
 
-__constant sampler_t glyphSheetSampler = 
-  CLK_NORMALIZED_COORDS_FALSE | 
-  CLK_ADDRESS_CLAMP           | 
+__constant sampler_t glyphSheetSampler =
+  CLK_NORMALIZED_COORDS_FALSE |
+  CLK_ADDRESS_CLAMP           |
   CLK_FILTER_NEAREST
 ;
 
@@ -28,10 +28,10 @@ __kernel void UIshader(
     write_imagef(out, pos, backColor);
     return;
   }
-  const int glyphIndex = text[(textPos.y * textSize.x + textPos.x)];
+  const int glyphIndex = text[textPos.y * textSize.x + textPos.x];
   const int glyphIndexInBounds = glyphIndex < gsi->glyphCount.x * gsi->glyphCount.y;
   const int2 glyphSheetPos = glyphIndexInBounds * (int2)(
-    glyphIndex % gsi->glyphCount.x, 
+    glyphIndex % gsi->glyphCount.x,
     glyphIndex / gsi->glyphCount.x
   );
   const int2 glyphSheetPixPos = (glyphSheetPos * gsi->glyphSize) + (offsetPos % gsi->glyphSize);

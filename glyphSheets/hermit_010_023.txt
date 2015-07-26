@@ -1,6 +1,4 @@
-hermit_010_023.bmp 10 23 32 3
+010 023 032 003
  !"#$%&'()*+,-./0123456789:;<=>?
 @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_
-`abcdefghijklmnopqrstuvwxyz{|}~ 
-
-
+`abcdefghijklmnopqrstuvwxyz{|}~

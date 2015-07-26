@@ -11,7 +11,7 @@ void printTextBlock() {
   }
 }
 
-void buildsomeroots() {
+void touchThePuppetHead() {
   roots.push_back(Root("As your body floats down Third Street"));
   roots.push_back(Root("With the burn-smell factory closing up"));
   roots.push_back(Root("Yes it's sad to say you will romanticize"));
@@ -71,8 +71,10 @@ void buildsomeroots() {
   roots.push_back(Root("Put your hand inside"));
   roots.push_back(Root("Put your hand inside"));
   roots.push_back(Root("Put your hand inside the puppet head"));
-  
-  
+}
+
+void buildsomeroots() {
+  touchThePuppetHead();
   UItextBlock.size.x = 0;
   UItextBlock.size.y = roots.size();
   for (uint i = 0; i < roots.size(); i++) {

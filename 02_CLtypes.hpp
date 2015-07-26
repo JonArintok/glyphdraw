@@ -1,6 +1,5 @@
 
 typedef uint8_t  uchar;
-//typedef uint32_t uint;
 
 #define __pair(dt, st)\
 struct dt {\
@@ -37,4 +36,3 @@ struct dt {\
 };
 
 __pair(int2, int)
-

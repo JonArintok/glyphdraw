@@ -1,9 +1,9 @@
 
 
 void initOpenCL(
-  cl_device_id     *devices, 
-  const cl_uint     maxDevices, 
-  cl_context       &context, 
+  cl_device_id     *devices,
+  const cl_uint     maxDevices,
+  cl_context       &context,
   cl_command_queue &commandQueue
 ) {
   cl_uint platformCount;
@@ -31,7 +31,7 @@ void initOpenCL(
       return;
     }
     cout << "no GPU devices found, using CPU instead" << endl;
-  }	
+  }
   context = clCreateContext(NULL,1, devices, NULL,NULL, &CLstatus);
   checkCLerror(__LINE__, __FILE__);
   commandQueue = clCreateCommandQueueWithProperties(
@@ -41,12 +41,10 @@ void initOpenCL(
 }
 
 
-#include <sstream>
-#include <fstream>
 void initClProgram(
-  vector<const char*> &paths, 
-  cl_program          &program, 
-  cl_context          &context, 
+  vector<const char*> &paths,
+  cl_program          &program,
+  cl_context          &context,
   cl_device_id        *devices
 ) {
   string      sources     [paths.size()];
@@ -70,20 +68,20 @@ void initClProgram(
   {
     size_t logLen;
     clGetProgramBuildInfo(
-      program, 
-      devices[0], 
-      CL_PROGRAM_BUILD_LOG, 
-      0, 
-      NULL, 
+      program,
+      devices[0],
+      CL_PROGRAM_BUILD_LOG,
+      0,
+      NULL,
       &logLen
     );
     char log[logLen];
     clGetProgramBuildInfo(
-      program, 
-      devices[0], 
-      CL_PROGRAM_BUILD_LOG, 
-      logLen, 
-      log, 
+      program,
+      devices[0],
+      CL_PROGRAM_BUILD_LOG,
+      logLen,
+      log,
       NULL
     );
     cout << log << endl;

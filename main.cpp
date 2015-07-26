@@ -2,6 +2,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <sstream>
+#include <fstream>
 #include <CL/cl.h>
 #include <SDL2/SDL.h>
 using namespace std;
@@ -50,10 +52,8 @@ int main(int argc, char* argv[]) {
     checkCLerror(__LINE__, __FILE__);
   }
 
-  const char *bmp_path = "glyphSheets/hermit_010_023.bmp";
-  gsi.glyphSize  = int2(10, 23);
-  gsi.glyphCount = int2(32, 3);
-  gss = SDL_LoadBMP(bmp_path);
+
+  initGlyphSheet("glyphSheets/hermit_010_023");
   {
     cl_image_format glyphSheetFormat = {CL_LUMINANCE, CL_UNORM_INT8};
     cl_image_desc glyphSheetDesc;
