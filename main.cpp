@@ -200,17 +200,18 @@ int main(int argc, char* argv[]) {
   if (!strcmp(SDL_GetError(), "Invalid renderer")) SDL_ClearError();//?!?
   checkSDLerror(__LINE__, __FILE__);
 
-  int2 scrollPos;
-  int2 pScrollPos;
-  int2 scrollVel;
-  int2 cursPos;
-  int2 pCursPos;
+  float2 scrollPos;
+  float2 pScrollPos;
+  float2 scrollVel;
+  float2 cursPos;
+  float2 pCursPos;
   int2 scrollBoundary = UItextBlock.size * gsi.glyphSize;
   if (scrollBoundary.x < videoSize.x) scrollBoundary.x = videoSize.x;
   if (scrollBoundary.y < videoSize.y) scrollBoundary.y = videoSize.y;
-  int scrollAccel = 1;
+  const float scrollAccel = 2.0;
+  const float vertScrollRailThresh = 0.8;
 
-  bool inDrag = false;
+  bool inDrag       = false;
   bool running      = true;
   bool shouldRedraw = true;
   int curFrame = 0;
@@ -228,11 +229,21 @@ int main(int argc, char* argv[]) {
           break;
         case SDL_MOUSEMOTION:
           pCursPos = cursPos;
-          cursPos  = int2(event.motion.x, event.motion.y);
+          cursPos  = float2(event.motion.x, event.motion.y);
           if (inDrag) {
             pScrollPos = scrollPos;
             scrollPos  = pScrollPos + (cursPos - pCursPos);
             scrollVel  = scrollPos - pScrollPos;
+
+            cout << fabs(scrollVel.x/scrollVel.y) << endl;
+            if (
+              !pScrollPos.x &&
+              fabs(scrollVel.x/scrollVel.y) < vertScrollRailThresh
+            ) {
+              scrollPos.x = 0;
+              scrollVel.x = 0;
+            }
+
             shouldRedraw = true;
           }
           break;
@@ -303,7 +314,8 @@ int main(int argc, char* argv[]) {
 
     if (shouldRedraw) {
 
-      CLstatus = clSetKernelArg(kernel, 0, sizeof(int2), (void*)&scrollPos);
+      int2 offset = int2(scrollPos.x, scrollPos.y);
+      CLstatus = clSetKernelArg(kernel, 0, sizeof(int2), (void*)&offset);
       checkCLerror(__LINE__, __FILE__);
 
       size_t globalWorkSize[] = {(size_t)videoSize.x, (size_t)videoSize.y};
@@ -347,7 +359,7 @@ int main(int argc, char* argv[]) {
         kernelInspect_clmem,          //cl_mem           buffer,
         CL_TRUE,                      //cl_bool          blocking_read,
         0,                            //size_t           offset,
-        sizeof(int)*videoSize.Pro(), //size_t           cb,
+        sizeof(int)*videoSize.Pro(),  //size_t           cb,
         kernelInspect.data(),         //void            *ptr,
         0,                            //cl_uint          num_events_in_wait_list,
         NULL,                         //const cl_event  *event_wait_list,

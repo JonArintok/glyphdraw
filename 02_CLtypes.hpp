@@ -11,16 +11,13 @@ struct dt {\
   dt   operator -  (dt b) {return dt(x - b.x, y - b.y);}\
   dt   operator *  (dt b) {return dt(x * b.x, y * b.y);}\
   dt   operator /  (dt b) {return dt(x / b.x, y / b.y);}\
-  dt   operator %  (dt b) {return dt(x % b.x, y % b.y);}\
-  dt   operator ^  (dt b) {return dt(x ^ b.x, y ^ b.y);}\
-  bool operator == (dt b) {return x == b.x  &&  y == b.y;}\
+  /*dt   operator %  (dt b) {return dt(x % b.x, y % b.y);}*/\
   bool operator != (dt b) {return x != b.x  ||  y != b.y;}\
   dt   operator +  (st b) {return dt(x + b, y + b);}\
   dt   operator -  (st b) {return dt(x - b, y - b);}\
   dt   operator *  (st b) {return dt(x * b, y * b);}\
   dt   operator /  (st b) {return dt(x / b, y / b);}\
-  dt   operator %  (st b) {return dt(x % b, y % b);}\
-  dt   operator ^  (st b) {return dt(x ^ b, y ^ b);}\
+  /*dt   operator %  (st b) {return dt(x % b, y % b);}*/\
   bool operator == (st b) {return x == b  &&  y == b;}\
   bool operator != (st b) {return x != b  ||  y != b;}\
   void operator += (dt b) {x += b.x; y += b.y;}\
@@ -35,4 +32,6 @@ struct dt {\
   st pro() {return x*y;}\
 };
 
-__pair(int2, int)
+__pair(int2, int);
+
+__pair(float2, float);
