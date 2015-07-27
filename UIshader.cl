@@ -1,5 +1,6 @@
 
-#define backColor (float4)(0.0, 0, 0, 1)
+#define backColor (float4)(0.2, 0.2, 0.2, 1)
+#define foreColor (float4)(0.8, 0.8, 0.8, 1)
 
 __constant sampler_t glyphSheetSampler =
   CLK_NORMALIZED_COORDS_FALSE |
@@ -15,7 +16,7 @@ __kernel void UIshader(
   read_only     image2d_t       glyphSheet,  //4
   write_only    image2d_t       out          //5
 #if kernelInspectArgIndex
-  , global     int            *inspect      //6
+  ,global int *inspect //6
 #endif
 ) {
   const int2 pos = {get_global_id(0), get_global_id(1)};
@@ -35,8 +36,8 @@ __kernel void UIshader(
     glyphIndex / gsi->glyphCount.x
   );
   const int2 glyphSheetPixPos = (glyphSheetPos * gsi->glyphSize) + (offsetPos % gsi->glyphSize);
-  float4 color = read_imagef(glyphSheet, glyphSheetSampler, glyphSheetPixPos);
-  write_imagef(out, pos, color);
+  float4 value = read_imagef(glyphSheet, glyphSheetSampler, glyphSheetPixPos);
+  write_imagef(out, pos, mix(backColor, foreColor, value));
 #if kernelInspectArgIndex
   const int2 dim = {get_global_size(0), get_global_size(1)};
   const int linearPos = pos.y * dim.x + pos.x;
