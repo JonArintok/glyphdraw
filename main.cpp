@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
   int2 scrollBoundary = UItextBlock.size * gsi.glyphSize;
   if (scrollBoundary.x < videoSize.x) scrollBoundary.x = videoSize.x;
   if (scrollBoundary.y < videoSize.y) scrollBoundary.y = videoSize.y;
-  const float scrollAccel = 2.0;
+  const float scrollAccel = 1.2;
   const float vertScrollRailThresh = 0.8;
 
   bool inDrag       = false;
@@ -234,8 +234,6 @@ int main(int argc, char* argv[]) {
             pScrollPos = scrollPos;
             scrollPos  = pScrollPos + (cursPos - pCursPos);
             scrollVel  = scrollPos - pScrollPos;
-
-            cout << fabs(scrollVel.x/scrollVel.y) << endl;
             if (
               !pScrollPos.x &&
               fabs(scrollVel.x/scrollVel.y) < vertScrollRailThresh
@@ -243,7 +241,6 @@ int main(int argc, char* argv[]) {
               scrollPos.x = 0;
               scrollVel.x = 0;
             }
-
             shouldRedraw = true;
           }
           break;
@@ -272,6 +269,10 @@ int main(int argc, char* argv[]) {
           scrollPos.x = 0;
           scrollVel.x = 0;
         }
+        else if (scrollPos.x > videoSize.x) {
+          scrollPos.x = videoSize.x;
+          scrollVel.x = 0;
+        }
       }
       else if (scrollPos.x + scrollBoundary.x  <  videoSize.x) {
         scrollVel.x += scrollAccel;
@@ -279,6 +280,10 @@ int main(int argc, char* argv[]) {
         scrollPos.x += scrollVel.x;
         if (scrollPos.x + scrollBoundary.x  >=  videoSize.x) {
           scrollPos.x = videoSize.x - scrollBoundary.x;
+          scrollVel.x = 0;
+        }
+        else if (scrollPos.x + scrollBoundary.x  <  0) {
+          scrollPos.x = 0 - scrollBoundary.x;
           scrollVel.x = 0;
         }
       }
@@ -294,6 +299,10 @@ int main(int argc, char* argv[]) {
           scrollPos.y = 0;
           scrollVel.y = 0;
         }
+        else if (scrollPos.y > videoSize.y) {
+          scrollPos.y = videoSize.y;
+          scrollVel.y = 0;
+        }
       }
       else if (scrollPos.y + scrollBoundary.y  <  videoSize.y) {
         scrollVel.y += scrollAccel;
@@ -301,6 +310,10 @@ int main(int argc, char* argv[]) {
         scrollPos.y += scrollVel.y;
         if (scrollPos.y + scrollBoundary.y  >=  videoSize.y) {
           scrollPos.y = videoSize.y - scrollBoundary.y;
+          scrollVel.y = 0;
+        }
+        else if (scrollPos.y + scrollBoundary.y  <  0) {
+          scrollPos.y = 0 - scrollBoundary.y;
           scrollVel.y = 0;
         }
       }
