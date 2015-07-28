@@ -6,7 +6,12 @@
 #include <fstream>
 #include <CL/cl.h>
 #include <SDL2/SDL.h>
-using namespace std;
+using std::cout;
+using std::endl;
+using std::vector;
+using std::string;
+using std::ifstream;
+using std::stringstream;
 #include "01_error.hpp"
 #include "02_CLtypes.hpp"
 #include "03_sharedWithCL.h"
@@ -185,7 +190,7 @@ int main(int argc, char* argv[]) {
 
 
   SDL_Init(SDL_INIT_VIDEO);
-  if (!strcmp(SDL_GetError(), "Unknown touch device")) SDL_ClearError();//?!?
+  if (!strcmp(SDL_GetError(), "Unknown touch device")) SDL_ClearError();//??
   checkSDLerror(__LINE__, __FILE__);
   SDL_Window *window = SDL_CreateWindow(
     "ShaderPunk",              //const char* title,
@@ -197,7 +202,7 @@ int main(int argc, char* argv[]) {
   );
   checkSDLerror(__LINE__, __FILE__);
   SDL_Surface *windowSrfc = SDL_GetWindowSurface(window);
-  if (!strcmp(SDL_GetError(), "Invalid renderer")) SDL_ClearError();//?!?
+  if (!strcmp(SDL_GetError(), "Invalid renderer")) SDL_ClearError();//??
   checkSDLerror(__LINE__, __FILE__);
 
   float2 scrollPos;
