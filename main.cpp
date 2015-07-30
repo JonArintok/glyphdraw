@@ -20,7 +20,7 @@ using std::stringstream;
 #include "06_testRoots.hpp"
 
 
-float overBound(float tl, float br, float winSize) {
+float overBound(const float tl, const float br, const float winSize) {
   return tl > 0 ? tl : (br < winSize ? br - winSize : 0);
 }
 int main(int argc, char* argv[]) {
@@ -215,10 +215,7 @@ int main(int argc, char* argv[]) {
     float2 pCursPos;
     //const float scrollAccel = 1.2;
     //const float vertScrollRailThresh = 0.8;
-    float2 UItextBlockPixCount = float2(
-      UItextBlock.size.x * gsi.glyphSize.x,
-      UItextBlock.size.y * gsi.glyphSize.y
-    );
+    float2 UItextBlockPixCount = UItextBlock.size * gsi.glyphSize;
     float2 scrollBoundary = float2(
       UItextBlockPixCount.x < videoSize.x ? videoSize.x : UItextBlockPixCount.x,
       UItextBlockPixCount.y < videoSize.y ? videoSize.y : UItextBlockPixCount.y
@@ -229,11 +226,9 @@ int main(int argc, char* argv[]) {
     float2 scrollPos;
     float2 pScrollPos;
     float2 scrollBoundaryBRC = scrollBoundary;
-    bool running      = true;
-    bool shouldRedraw = true;
     int curFrame = 0;
+    bool running = true;
     while (running) {
-      curFrame++;
       pCursPress = cursPress;
       pCursPos   = cursPos;
       SDL_Event event;
@@ -266,10 +261,7 @@ int main(int argc, char* argv[]) {
         }
       }
       pOverBounds = overBounds;
-      overBounds = float2(
-        overBound(scrollPos.x, scrollBoundaryBRC.x, videoSize.x),
-        overBound(scrollPos.y, scrollBoundaryBRC.y, videoSize.y)
-      );
+      overBounds = distrib(overBound, scrollPos, scrollBoundaryBRC, videoSize);
       scrollVel = cursPress ?
         (pCursPress ? cursPos - pCursPos : float2(0,0)) :
         scrollVel
@@ -277,8 +269,7 @@ int main(int argc, char* argv[]) {
       pScrollPos = scrollPos;
       scrollPos += scrollVel;
       scrollBoundaryBRC = scrollPos + scrollBoundary;
-      shouldRedraw = scrollPos != pScrollPos;
-      if (shouldRedraw) {
+      if (scrollPos != pScrollPos || !curFrame) {
 
         int2 offset = int2(scrollPos.x, scrollPos.y);
         CLstatus = clSetKernelArg(kernel, 0, sizeof(int2), (void*)&offset);
@@ -344,9 +335,9 @@ int main(int argc, char* argv[]) {
           }
         }
 #endif
-        shouldRedraw = false;
       }
       SDL_Delay(10);
+      curFrame++;
     }
   }
 
