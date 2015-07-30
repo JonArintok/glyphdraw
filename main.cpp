@@ -20,6 +20,9 @@ using std::stringstream;
 #include "06_testRoots.hpp"
 
 
+float overBound(float tl, float br, float winSize) {
+  return tl > 0 ? tl : (br < winSize ? br - winSize : 0);
+}
 int main(int argc, char* argv[]) {
 
   const int2 videoSize = int2(1280, 720);
@@ -205,200 +208,146 @@ int main(int argc, char* argv[]) {
   if (!strcmp(SDL_GetError(), "Invalid renderer")) SDL_ClearError();//??
   checkSDLerror(__LINE__, __FILE__);
 
-  float2 scrollPos;
-  float2 pScrollPos;
-  float2 scrollVel;
-  float2 cursPos;
-  float2 pCursPos;
-  int2 scrollBoundary = UItextBlock.size * gsi.glyphSize;
-  if (scrollBoundary.x < videoSize.x) scrollBoundary.x = videoSize.x;
-  if (scrollBoundary.y < videoSize.y) scrollBoundary.y = videoSize.y;
-  const float scrollAccel = 1.2;
-  const float vertScrollRailThresh = 0.8;
-
-  bool inDrag       = false;
-  bool running      = true;
-  bool shouldRedraw = true;
-  int curFrame = 0;
-  while (running) {
-    curFrame++;
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      switch (event.type) {
-        case SDL_QUIT: running = false; break;
-        case SDL_WINDOWEVENT:
-          if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
-            SDL_UpdateWindowSurface(window);
-            checkSDLerror(__LINE__, __FILE__);
-          }
-          break;
-        case SDL_MOUSEMOTION:
-          pCursPos = cursPos;
-          cursPos  = float2(event.motion.x, event.motion.y);
-          if (inDrag) {
-            pScrollPos = scrollPos;
-            scrollPos  = pScrollPos + (cursPos - pCursPos);
-            scrollVel  = scrollPos - pScrollPos;
-            if (
-              !pScrollPos.x &&
-              fabs(scrollVel.x/scrollVel.y) < vertScrollRailThresh
-            ) {
-              scrollPos.x = 0;
-              scrollVel.x = 0;
+  {
+    float  cursPress  = 0;
+    float  pCursPress = 0;
+    float2 cursPos;
+    float2 pCursPos;
+    //const float scrollAccel = 1.2;
+    //const float vertScrollRailThresh = 0.8;
+    float2 UItextBlockPixCount = float2(
+      UItextBlock.size.x * gsi.glyphSize.x,
+      UItextBlock.size.y * gsi.glyphSize.y
+    );
+    float2 scrollBoundary = float2(
+      UItextBlockPixCount.x < videoSize.x ? videoSize.x : UItextBlockPixCount.x,
+      UItextBlockPixCount.y < videoSize.y ? videoSize.y : UItextBlockPixCount.y
+    );
+    float2 overBounds;
+    float2 pOverBounds;
+    float2 scrollVel;
+    float2 scrollPos;
+    float2 pScrollPos;
+    float2 scrollBoundaryBRC = scrollBoundary;
+    bool running      = true;
+    bool shouldRedraw = true;
+    int curFrame = 0;
+    while (running) {
+      curFrame++;
+      pCursPress = cursPress;
+      pCursPos   = cursPos;
+      SDL_Event event;
+      while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+          case SDL_QUIT: running = false; break;
+          case SDL_WINDOWEVENT:
+            if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
+              SDL_UpdateWindowSurface(window);
+              checkSDLerror(__LINE__, __FILE__);
             }
-            shouldRedraw = true;
-          }
-          break;
-        case SDL_MOUSEBUTTONDOWN:
-          switch (event.button.button) {
-            case SDL_BUTTON_LEFT:
-              scrollVel = 0;
-              inDrag = true;
-              break;
-          }
-          break;
-        case SDL_MOUSEBUTTONUP:
-          switch (event.button.button) {
-            case SDL_BUTTON_LEFT: inDrag = false; break;
-          }
-          break;
-      }
-    }
-    if (!inDrag) {
-
-      if (scrollPos.x > 0) {
-        scrollVel.x -= scrollAccel;
-        pScrollPos.x = scrollPos.x;
-        scrollPos.x += scrollVel.x;
-        if (scrollPos.x <= 0) {
-          scrollPos.x = 0;
-          scrollVel.x = 0;
-        }
-        else if (scrollPos.x > videoSize.x) {
-          scrollPos.x = videoSize.x;
-          scrollVel.x = 0;
+            break;
+          case SDL_MOUSEMOTION:
+            cursPos = float2(event.motion.x, event.motion.y);
+            break;
+          case SDL_MOUSEBUTTONDOWN:
+            switch (event.button.button) {
+              case SDL_BUTTON_LEFT:
+                cursPress = 1;
+                break;
+            }
+            break;
+          case SDL_MOUSEBUTTONUP:
+            switch (event.button.button) {
+              case SDL_BUTTON_LEFT:
+                cursPress = 0;
+                break;
+            }
+            break;
         }
       }
-      else if (scrollPos.x + scrollBoundary.x  <  videoSize.x) {
-        scrollVel.x += scrollAccel;
-        pScrollPos.x = scrollPos.x;
-        scrollPos.x += scrollVel.x;
-        if (scrollPos.x + scrollBoundary.x  >=  videoSize.x) {
-          scrollPos.x = videoSize.x - scrollBoundary.x;
-          scrollVel.x = 0;
-        }
-        else if (scrollPos.x + scrollBoundary.x  <  0) {
-          scrollPos.x = 0 - scrollBoundary.x;
-          scrollVel.x = 0;
-        }
-      }
-      else {
-        pScrollPos.x = scrollPos.x;
-        scrollPos.x += scrollVel.x;
-      }
-      if (scrollPos.y > 0) {
-        scrollVel.y -= scrollAccel;
-        pScrollPos.y = scrollPos.y;
-        scrollPos.y += scrollVel.y;
-        if (scrollPos.y <= 0) {
-          scrollPos.y = 0;
-          scrollVel.y = 0;
-        }
-        else if (scrollPos.y > videoSize.y) {
-          scrollPos.y = videoSize.y;
-          scrollVel.y = 0;
-        }
-      }
-      else if (scrollPos.y + scrollBoundary.y  <  videoSize.y) {
-        scrollVel.y += scrollAccel;
-        pScrollPos.y = scrollPos.y;
-        scrollPos.y += scrollVel.y;
-        if (scrollPos.y + scrollBoundary.y  >=  videoSize.y) {
-          scrollPos.y = videoSize.y - scrollBoundary.y;
-          scrollVel.y = 0;
-        }
-        else if (scrollPos.y + scrollBoundary.y  <  0) {
-          scrollPos.y = 0 - scrollBoundary.y;
-          scrollVel.y = 0;
-        }
-      }
-      else {
-        pScrollPos.y = scrollPos.y;
-        scrollPos.y += scrollVel.y;
-      }
-
-      if (scrollPos != pScrollPos) shouldRedraw = true;
-    }
-
-    if (shouldRedraw) {
-
-      int2 offset = int2(scrollPos.x, scrollPos.y);
-      CLstatus = clSetKernelArg(kernel, 0, sizeof(int2), (void*)&offset);
-      checkCLerror(__LINE__, __FILE__);
-
-      size_t globalWorkSize[] = {(size_t)videoSize.x, (size_t)videoSize.y};
-      CLstatus = clEnqueueNDRangeKernel(
-        commandQueue,       //cl_command_queue command_queue,
-        kernel,             //cl_kernel        kernel,
-        2,                  //cl_uint          work_dim,
-        NULL,               //const size_t    *global_work_offset,
-        globalWorkSize,     //const size_t    *global_work_size,
-        NULL,               //const size_t    *local_work_size,
-        0,                  //cl_uint          num_events_in_wait_list,
-        NULL,               //const cl_event  *event_wait_list,
-        NULL                //cl_event        *event
+      pOverBounds = overBounds;
+      overBounds = float2(
+        overBound(scrollPos.x, scrollBoundaryBRC.x, videoSize.x),
+        overBound(scrollPos.y, scrollBoundaryBRC.y, videoSize.y)
       );
-      checkCLerror(__LINE__, __FILE__);
+      scrollVel = cursPress ?
+        (pCursPress ? cursPos - pCursPos : float2(0,0)) :
+        scrollVel
+      ;
+      pScrollPos = scrollPos;
+      scrollPos += scrollVel;
+      scrollBoundaryBRC = scrollPos + scrollBoundary;
+      shouldRedraw = scrollPos != pScrollPos;
+      if (shouldRedraw) {
 
-      size_t origin[] = {0, 0, 0};
-      size_t region[] = {(size_t)videoSize.x, (size_t)videoSize.y, 1};
-      CLstatus = clEnqueueReadImage(
-        commandQueue,       //cl_command_queue command_queue,
-        outputImage,        //cl_mem           image,
-        CL_TRUE,            //cl_bool          blocking_read,
-        origin,             //const            size_t origin[3],
-        region,             //const            size_t region[3],
-        0,                  //size_t           row_pitch,
-        0,                  //size_t           slice_pitch,
-        windowSrfc->pixels, //void            *ptr,
-        0,                  //cl_uint          num_events_in_wait_list,
-        NULL,               //const cl_event  *event_wait_list,
-        NULL                //cl_event        *event
-      );
-      checkCLerror(__LINE__, __FILE__);
+        int2 offset = int2(scrollPos.x, scrollPos.y);
+        CLstatus = clSetKernelArg(kernel, 0, sizeof(int2), (void*)&offset);
+        checkCLerror(__LINE__, __FILE__);
+
+        size_t globalWorkSize[] = {(size_t)videoSize.x, (size_t)videoSize.y};
+        CLstatus = clEnqueueNDRangeKernel(
+          commandQueue,       //cl_command_queue command_queue,
+          kernel,             //cl_kernel        kernel,
+          2,                  //cl_uint          work_dim,
+          NULL,               //const size_t    *global_work_offset,
+          globalWorkSize,     //const size_t    *global_work_size,
+          NULL,               //const size_t    *local_work_size,
+          0,                  //cl_uint          num_events_in_wait_list,
+          NULL,               //const cl_event  *event_wait_list,
+          NULL                //cl_event        *event
+        );
+        checkCLerror(__LINE__, __FILE__);
+
+        size_t origin[] = {0, 0, 0};
+        size_t region[] = {(size_t)videoSize.x, (size_t)videoSize.y, 1};
+        CLstatus = clEnqueueReadImage(
+          commandQueue,       //cl_command_queue command_queue,
+          outputImage,        //cl_mem           image,
+          CL_TRUE,            //cl_bool          blocking_read,
+          origin,             //const            size_t origin[3],
+          region,             //const            size_t region[3],
+          0,                  //size_t           row_pitch,
+          0,                  //size_t           slice_pitch,
+          windowSrfc->pixels, //void            *ptr,
+          0,                  //cl_uint          num_events_in_wait_list,
+          NULL,               //const cl_event  *event_wait_list,
+          NULL                //cl_event        *event
+        );
+        checkCLerror(__LINE__, __FILE__);
 
 
-      SDL_UpdateWindowSurface(window);
-      checkSDLerror(__LINE__, __FILE__);
+        SDL_UpdateWindowSurface(window);
+        checkSDLerror(__LINE__, __FILE__);
 
 #if kernelInspectArgIndex
-      CLstatus = clEnqueueReadBuffer(
-        commandQueue,                 //cl_command_queue command_queue,
-        kernelInspect_clmem,          //cl_mem           buffer,
-        CL_TRUE,                      //cl_bool          blocking_read,
-        0,                            //size_t           offset,
-        sizeof(int)*videoSize.Pro(),  //size_t           cb,
-        kernelInspect.data(),         //void            *ptr,
-        0,                            //cl_uint          num_events_in_wait_list,
-        NULL,                         //const cl_event  *event_wait_list,
-        NULL                          //cl_event        *event
-      );
-      checkCLerror(__LINE__, __FILE__);
-      cout << endl << endl << "glyphSheetPos.y" << endl << endl;
-      for (int row = 0; row < 3; row++) {
-        cout << endl << endl << "row: " << row << endl;
-        for (
-          int i = videoSize.x * gsi.glyphSize.y * row;
-          i < videoSize.x * gsi.glyphSize.y * row + gss->w;
-          i += gsi.glyphSize.x
-        ) {
-          cout << "kernelInspect[" << i << "]: " << kernelInspect[i] << endl;
+        CLstatus = clEnqueueReadBuffer(
+          commandQueue,                 //cl_command_queue command_queue,
+          kernelInspect_clmem,          //cl_mem           buffer,
+          CL_TRUE,                      //cl_bool          blocking_read,
+          0,                            //size_t           offset,
+          sizeof(int)*videoSize.Pro(),  //size_t           cb,
+          kernelInspect.data(),         //void            *ptr,
+          0,                            //cl_uint          num_events_in_wait_list,
+          NULL,                         //const cl_event  *event_wait_list,
+          NULL                          //cl_event        *event
+        );
+        checkCLerror(__LINE__, __FILE__);
+        cout << endl << endl << "glyphSheetPos.y" << endl << endl;
+        for (int row = 0; row < 3; row++) {
+          cout << endl << endl << "row: " << row << endl;
+          for (
+            int i = videoSize.x * gsi.glyphSize.y * row;
+            i < videoSize.x * gsi.glyphSize.y * row + gss->w;
+            i += gsi.glyphSize.x
+          ) {
+            cout << "kernelInspect[" << i << "]: " << kernelInspect[i] << endl;
+          }
         }
-      }
 #endif
-      shouldRedraw = false;
+        shouldRedraw = false;
+      }
+      SDL_Delay(10);
     }
-    SDL_Delay(10);
   }
 
   CLstatus = clReleaseKernel(kernel);
