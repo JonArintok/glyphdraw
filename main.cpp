@@ -23,6 +23,11 @@ using std::stringstream;
 float overBound(const float tl, const float br, const float winSize) {
   return tl > 0 ? tl : (br < winSize ? br - winSize : 0);
 }
+float ternaryReduc(const float in) {return in ? (in > 0 ? 1 : -1) : 0;}
+float rebound(const float overBound, const float vel, const float accel) {
+  return overBound ? vel + ternaryReduc(overBound)*accel*-1 : vel;
+}
+
 int main(int argc, char* argv[]) {
 
   const int2 videoSize = int2(1280, 720);
@@ -213,7 +218,7 @@ int main(int argc, char* argv[]) {
     float  pCursPress = 0;
     float2 cursPos;
     float2 pCursPos;
-    //const float scrollAccel = 1.2;
+    const float scrollAccel = 1.2;
     //const float vertScrollRailThresh = 0.8;
     float2 UItextBlockPixCount = UItextBlock.size * gsi.glyphSize;
     float2 scrollBoundary = float2(
@@ -263,8 +268,11 @@ int main(int argc, char* argv[]) {
       pOverBounds = overBounds;
       overBounds = distrib(overBound, scrollPos, scrollBoundaryBRC, videoSize);
       scrollVel = cursPress ?
-        (pCursPress ? cursPos - pCursPos : float2(0,0)) :
-        scrollVel
+        (pCursPress ? cursPos - pCursPos : float2()) :
+        (overBounds.x || overBounds.y ?
+          distrib(rebound, overBounds, scrollVel, float2(scrollAccel)) :
+          scrollVel
+        )
       ;
       pScrollPos = scrollPos;
       scrollPos += scrollVel;

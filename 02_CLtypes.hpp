@@ -5,6 +5,7 @@ typedef uint8_t  uchar;
 st x;\
 st y;\
 dt () : x(0), y(0) {}\
+dt (const st in) : x(in), y(in) {}\
 dt (const st xIn, const st yIn) : x(xIn), y(yIn) {}\
 dt operator +  (const dt b) {return dt(x + b.x, y + b.y);}\
 dt operator -  (const dt b) {return dt(x - b.x, y - b.y);}\
