@@ -41,7 +41,10 @@ float overBound(const float tl, const float br, const float winSize) {
 }
 float ternaryReduc(const float in) {return in ? (in > 0 ? 1 : -1) : 0;}
 bool crossedZero(const float a, const float b) {
-  return (a > 0 && b <= 0) || (a < 0 && b >= 0) ? true : false);
+  return (a > 0 && b <= 0) || (a < 0 && b >= 0);
+}
+float closeEnough(const float in) {
+  return in < 0.1 && in > -0.1 ? 0 : in;
 }
 float rebound(
   const float tl,
@@ -56,11 +59,13 @@ float rebound(
   const float nOverBounds = overBound(tl+reVel, br+reVel, winSize);
   const float out = crossedZero(overBounds, nOverBounds) ?
     0-overBounds : reVel;
+  cout << "tl: " << tl << endl;
+  cout << "br: " << br << endl;
   cout << "overBounds: " << overBounds << endl;
   cout << "reVel: " << reVel << endl;
   cout << "nOverBounds: " << nOverBounds << endl;
   cout << "out: " << out << endl;
-  return out;
+  return closeEnough(out);
 }
 
 int main(int argc, char* argv[]) {
@@ -321,7 +326,7 @@ int main(int argc, char* argv[]) {
         )
       ;
       pScrollPos = scrollPos;
-      scrollPos += scrollVel;
+      scrollPos = distrib(closeEnough, scrollVel + scrollPos);
       scrollBoundaryBRC = scrollPos + scrollBoundary;
       cout << endl;
       if (scrollPos != pScrollPos || !curFrame) {
