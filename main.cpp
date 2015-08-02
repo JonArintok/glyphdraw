@@ -19,13 +19,48 @@ using std::stringstream;
 #include "05_foundation.hpp"
 #include "06_testRoots.hpp"
 
+/*
+class scrollable {
+  float accel;
+  //float vertScrollRailThresh = 0.8;
+  float2 boundary;
+  float2 overBounds;
+  float2 pOverBounds;
+  float2 vel;
+  float2 pos;
+  float2 pPos;
+  float2 boundaryBRC = scrollBoundary;
+public:
+  scrollable(const float2 b, const float a) : boundary(b), accel(a) {
+    boundaryBRC = scrollBoundary;
+  }
+}*/
 
 float overBound(const float tl, const float br, const float winSize) {
   return tl > 0 ? tl : (br < winSize ? br - winSize : 0);
 }
 float ternaryReduc(const float in) {return in ? (in > 0 ? 1 : -1) : 0;}
-float rebound(const float overBound, const float vel, const float accel) {
-  return overBound ? vel + ternaryReduc(overBound)*accel*-1 : vel;
+bool crossedZero(const float a, const float b) {
+  return (a > 0 && b <= 0) || (a < 0 && b >= 0) ? true : false);
+}
+float rebound(
+  const float tl,
+  const float br,
+  const float winSize,
+  const float vel,
+  const float accel
+) {
+  const float overBounds = overBound(tl, br, winSize);
+  if (!overBounds) return vel;
+  const float reVel = vel + ternaryReduc(overBounds)*accel*-1;
+  const float nOverBounds = overBound(tl+reVel, br+reVel, winSize);
+  const float out = crossedZero(overBounds, nOverBounds) ?
+    0-overBounds : reVel;
+  cout << "overBounds: " << overBounds << endl;
+  cout << "reVel: " << reVel << endl;
+  cout << "nOverBounds: " << nOverBounds << endl;
+  cout << "out: " << out << endl;
+  return out;
 }
 
 int main(int argc, char* argv[]) {
@@ -218,9 +253,14 @@ int main(int argc, char* argv[]) {
     float  pCursPress = 0;
     float2 cursPos;
     float2 pCursPos;
+    float2 UItextBlockPixCount = UItextBlock.size * gsi.glyphSize;
+
+
+
+
+
     const float scrollAccel = 1.2;
     //const float vertScrollRailThresh = 0.8;
-    float2 UItextBlockPixCount = UItextBlock.size * gsi.glyphSize;
     float2 scrollBoundary = float2(
       UItextBlockPixCount.x < videoSize.x ? videoSize.x : UItextBlockPixCount.x,
       UItextBlockPixCount.y < videoSize.y ? videoSize.y : UItextBlockPixCount.y
@@ -231,6 +271,9 @@ int main(int argc, char* argv[]) {
     float2 scrollPos;
     float2 pScrollPos;
     float2 scrollBoundaryBRC = scrollBoundary;
+
+
+
     int curFrame = 0;
     bool running = true;
     while (running) {
@@ -251,16 +294,12 @@ int main(int argc, char* argv[]) {
             break;
           case SDL_MOUSEBUTTONDOWN:
             switch (event.button.button) {
-              case SDL_BUTTON_LEFT:
-                cursPress = 1;
-                break;
+              case SDL_BUTTON_LEFT: cursPress = 1; break;
             }
             break;
           case SDL_MOUSEBUTTONUP:
             switch (event.button.button) {
-              case SDL_BUTTON_LEFT:
-                cursPress = 0;
-                break;
+              case SDL_BUTTON_LEFT: cursPress = 0; break;
             }
             break;
         }
@@ -270,13 +309,21 @@ int main(int argc, char* argv[]) {
       scrollVel = cursPress ?
         (pCursPress ? cursPos - pCursPos : float2()) :
         (overBounds.x || overBounds.y ?
-          distrib(rebound, overBounds, scrollVel, float2(scrollAccel)) :
+          distrib(
+            rebound,
+            scrollPos,
+            scrollBoundaryBRC,
+            videoSize,
+            scrollVel,
+            float2(scrollAccel)
+          ) :
           scrollVel
         )
       ;
       pScrollPos = scrollPos;
       scrollPos += scrollVel;
       scrollBoundaryBRC = scrollPos + scrollBoundary;
+      cout << endl;
       if (scrollPos != pScrollPos || !curFrame) {
 
         int2 offset = int2(scrollPos.x, scrollPos.y);

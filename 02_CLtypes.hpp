@@ -70,3 +70,18 @@ float2 distrib(
   const float2 b,
   const float2 c
 ) {return float2(F(a.x, b.x, c.x), F(a.y, b.y, c.y));}
+float2 distrib(
+  float (*F)(const float, const float, const float, const float),
+  const float2 a,
+  const float2 b,
+  const float2 c,
+  const float2 d
+) {return float2(F(a.x, b.x, c.x, d.x), F(a.y, b.y, c.y, d.y));}
+float2 distrib(
+  float (*F)(const float, const float, const float, const float, const float),
+  const float2 a,
+  const float2 b,
+  const float2 c,
+  const float2 d,
+  const float2 e
+) {return float2(F(a.x, b.x, c.x, d.x, e.x), F(a.y, b.y, c.y, d.y, e.y));}
