@@ -19,26 +19,7 @@ using std::stringstream;
 #include "05_foundation.hpp"
 #include "06_testRoots.hpp"
 
-/*
-class scrollable {
-  float accel;
-  //float vertScrollRailThresh = 0.8;
-  float2 boundary;
-  float2 overBounds;
-  float2 pOverBounds;
-  float2 vel;
-  float2 pos;
-  float2 pPos;
-  float2 boundaryBRC = scrollBoundary;
-public:
-  scrollable(const float2 b, const float a) : boundary(b), accel(a) {
-    boundaryBRC = scrollBoundary;
-  }
-}*/
 
-float overBound(const float tl, const float br, const float winSize) {
-  return tl > 0 ? tl : (br < winSize ? br - winSize : 0);
-}
 float ternaryReduc(const float in) {return in ? (in > 0 ? 1 : -1) : 0;}
 bool crossedZero(const float a, const float b) {
   return (a > 0 && b <= 0) || (a < 0 && b >= 0);
@@ -46,26 +27,59 @@ bool crossedZero(const float a, const float b) {
 float closeEnough(const float in) {
   return in < 0.1 && in > -0.1 ? 0 : in;
 }
-float rebound(
-  const float tl,
-  const float br,
-  const float winSize,
-  const float vel,
-  const float accel
+float overBound(const float tl, const float br, const float win) {
+  return tl > 0 ? tl : (br < win ? br - win : 0);
+}
+class scrollable {
+  float accel;
+  //float vertScrollRailThresh = 0.8;
+  float2 size;
+  float2 boundary;
+  float2 vel;
+  float2 pos;
+  float2 pPos;
+  float2 posBR;
+  float2 pPosBR;
+  float2 overBounds;
+  float2 nOverBounds;
+  float2 winSize;
+public:
+  scrollable(
+    const float accelIn,
+    const float2 sizeIn,
+    const float2 winSizeIn
+  ) :
+    accel(accelIn), size(sizeIn), winSize(winSizeIn)
+  {
+    pPosBR = posBR = boundary = float2(
+      size.x < winSize.x ? winSize.x : size.x,
+      size.y < winSize.y ? winSize.y : size.y
+    );
+  }
+  void advance(
+    float  cursPress,
+    float  pCursPress,
+    float2 cursPos,
+    float2 pCursPos
+  );
+  float2 getPos() {return pos;}
+  bool hasMoved() {return pos != pPos;}
+};
+void scrollable::advance(
+  float  cursPress,
+  float  pCursPress,
+  float2 cursPos,
+  float2 pCursPos
 ) {
-  const float overBounds = overBound(tl, br, winSize);
-  if (!overBounds) return vel;
-  const float reVel = vel + ternaryReduc(overBounds)*accel*-1;
-  const float nOverBounds = overBound(tl+reVel, br+reVel, winSize);
-  const float out = crossedZero(overBounds, nOverBounds) ?
-    0-overBounds : reVel;
-  cout << "tl: " << tl << endl;
-  cout << "br: " << br << endl;
-  cout << "overBounds: " << overBounds << endl;
-  cout << "reVel: " << reVel << endl;
-  cout << "nOverBounds: " << nOverBounds << endl;
-  cout << "out: " << out << endl;
-  return closeEnough(out);
+  overBounds = nOverBounds;
+  vel = cursPress ?
+    (pCursPress ? cursPos - pCursPos : float2()) :
+    (overBounds.x || overBounds.y ? float2() : vel)
+  ;
+  nOverBounds = distrib(overBound, pos+vel, posBR+vel, winSize);
+  pPos = pos;
+  pos = distrib(closeEnough, vel + pos);
+  posBR = pos + boundary;
 }
 
 int main(int argc, char* argv[]) {
@@ -259,26 +273,8 @@ int main(int argc, char* argv[]) {
     float2 cursPos;
     float2 pCursPos;
     float2 UItextBlockPixCount = UItextBlock.size * gsi.glyphSize;
-
-
-
-
-
     const float scrollAccel = 1.2;
-    //const float vertScrollRailThresh = 0.8;
-    float2 scrollBoundary = float2(
-      UItextBlockPixCount.x < videoSize.x ? videoSize.x : UItextBlockPixCount.x,
-      UItextBlockPixCount.y < videoSize.y ? videoSize.y : UItextBlockPixCount.y
-    );
-    float2 overBounds;
-    float2 pOverBounds;
-    float2 scrollVel;
-    float2 scrollPos;
-    float2 pScrollPos;
-    float2 scrollBoundaryBRC = scrollBoundary;
-
-
-
+    scrollable scroll = scrollable(scrollAccel, UItextBlockPixCount, videoSize);
     int curFrame = 0;
     bool running = true;
     while (running) {
@@ -309,29 +305,10 @@ int main(int argc, char* argv[]) {
             break;
         }
       }
-      pOverBounds = overBounds;
-      overBounds = distrib(overBound, scrollPos, scrollBoundaryBRC, videoSize);
-      scrollVel = cursPress ?
-        (pCursPress ? cursPos - pCursPos : float2()) :
-        (overBounds.x || overBounds.y ?
-          distrib(
-            rebound,
-            scrollPos,
-            scrollBoundaryBRC,
-            videoSize,
-            scrollVel,
-            float2(scrollAccel)
-          ) :
-          scrollVel
-        )
-      ;
-      pScrollPos = scrollPos;
-      scrollPos = distrib(closeEnough, scrollVel + scrollPos);
-      scrollBoundaryBRC = scrollPos + scrollBoundary;
-      cout << endl;
-      if (scrollPos != pScrollPos || !curFrame) {
+      scroll.advance(cursPress, pCursPress, cursPos, pCursPos);
+      if (scroll.hasMoved() || !curFrame) {
 
-        int2 offset = int2(scrollPos.x, scrollPos.y);
+        int2 offset = int2(scroll.getPos().x, scroll.getPos().y);
         CLstatus = clSetKernelArg(kernel, 0, sizeof(int2), (void*)&offset);
         checkCLerror(__LINE__, __FILE__);
 
