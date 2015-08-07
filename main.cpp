@@ -21,8 +21,8 @@ using std::stringstream;
 
 
 float ternaryReduc(const float in) {return in ? (in > 0 ? 1 : -1) : 0;}
-bool crossedZero(const float a, const float b) {
-  return (a > 0 && b <= 0) || (a < 0 && b >= 0);
+bool passedZero(const float p, const float c) {
+  return (p > 0 && c <= 0) || (p < 0 && c >= 0) || (p != 0 && c == 0);
 }
 float closeEnough(const float in) {
   return in < 0.1 && in > -0.1 ? 0 : in;
@@ -31,37 +31,31 @@ float overBound(const float tl, const float br, const float win) {
   return tl > 0 ? tl : (br < win ? br - win : 0);
 }
 class scrollable {
-  float accel;
-  //float vertScrollRailThresh = 0.8;
+  float  accel;
   float2 size;
   float2 boundary;
   float2 vel;
   float2 pos;
   float2 pPos;
-  float2 posBR;
-  float2 pPosBR;
   float2 overBounds;
-  float2 nOverBounds;
+  float2 pOverBounds;
   float2 winSize;
+  float2 posBR() {return pos+boundary;}
+  float2 pPosBR() {return pPos+boundary;}
 public:
   scrollable(
-    const float accelIn,
+    const float  accelIn,
     const float2 sizeIn,
     const float2 winSizeIn
   ) :
     accel(accelIn), size(sizeIn), winSize(winSizeIn)
   {
-    pPosBR = posBR = boundary = float2(
+    boundary = float2(
       size.x < winSize.x ? winSize.x : size.x,
       size.y < winSize.y ? winSize.y : size.y
     );
   }
-  void advance(
-    float  cursPress,
-    float  pCursPress,
-    float2 cursPos,
-    float2 pCursPos
-  );
+  void advance(float cursPress,float pCursPress,float2 cursPos,float2 pCursPos);
   float2 getPos() {return pos;}
   bool hasMoved() {return pos != pPos;}
 };
@@ -71,15 +65,27 @@ void scrollable::advance(
   float2 cursPos,
   float2 pCursPos
 ) {
-  overBounds = nOverBounds;
+  pOverBounds = overBounds;
+  overBounds = distrib(overBound, pos, posBR(), winSize);
   vel = cursPress ?
     (pCursPress ? cursPos - pCursPos : float2()) :
-    (overBounds.x || overBounds.y ? float2() : vel)
+    float2(
+      vel.x + accel*ternaryReduc(overBounds.x)*-1,
+      vel.y + accel*ternaryReduc(overBounds.y)*-1
+    )
   ;
-  nOverBounds = distrib(overBound, pos+vel, posBR+vel, winSize);
   pPos = pos;
-  pos = distrib(closeEnough, vel + pos);
-  posBR = pos + boundary;
+  pos = pos + vel;
+  if (passedZero(pOverBounds.x, overBounds.x)) {
+    vel.x = 0;
+    overBounds.x = 0;
+    pos.x = pOverBounds.x > 0 ? 0 : winSize.x - boundary.x;
+  }
+  if (passedZero(pOverBounds.y, overBounds.y)) {
+    vel.y = 0;
+    overBounds.y = 0;
+    pos.y = pOverBounds.y > 0 ? 0 : winSize.y - boundary.y;
+  }
 }
 
 int main(int argc, char* argv[]) {
