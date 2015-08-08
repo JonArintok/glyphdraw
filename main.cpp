@@ -32,6 +32,7 @@ float overBound(const float tl, const float br, const float win) {
 }
 class scrollable {
   float  accel;
+  float  bumper;
   float2 size;
   float2 boundary;
   float2 vel;
@@ -54,6 +55,7 @@ public:
       size.x < winSize.x ? winSize.x : size.x,
       size.y < winSize.y ? winSize.y : size.y
     );
+    bumper = winSize.y/8;
   }
   void advance(float cursPress,float pCursPress,float2 cursPos,float2 pCursPos);
   float2 getPos() {return pos;}
@@ -81,11 +83,19 @@ void scrollable::advance(
     overBounds.x = 0;
     pos.x = pOverBounds.x > 0 ? 0 : winSize.x - boundary.x;
   }
+  if (pos.x > winSize.x-bumper || posBR().x < bumper) {
+    vel.x = 0;
+    pos.x = pos.x > winSize.x-bumper ? winSize.x - bumper : bumper - boundary.x;
+  };
   if (passedZero(pOverBounds.y, overBounds.y)) {
     vel.y = 0;
     overBounds.y = 0;
     pos.y = pOverBounds.y > 0 ? 0 : winSize.y - boundary.y;
   }
+  if (pos.y > winSize.y-bumper || posBR().y < bumper) {
+    vel.y = 0;
+    pos.y = pos.y > winSize.y-bumper ? winSize.y - bumper : bumper - boundary.y;
+  };
 }
 
 int main(int argc, char* argv[]) {
