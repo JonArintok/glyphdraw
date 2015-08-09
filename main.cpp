@@ -21,8 +21,8 @@ using std::stringstream;
 
 
 float ternaryReduc(const float in) {return in ? (in > 0 ? 1 : -1) : 0;}
-bool passedZero(const float p, const float c) {
-  return (p > 0 && c <= 0) || (p < 0 && c >= 0) || (p != 0 && c == 0);
+bool passedZero(const float prev, const float cur) {
+  return (prev > 0 && cur <= 0) || (prev < 0 && cur >= 0);
 }
 float closeEnough(const float in) {
   return in < 0.1 && in > -0.1 ? 0 : in;
@@ -80,7 +80,6 @@ void scrollable::advance(
   pos = pos + vel;
   if (passedZero(pOverBounds.x, overBounds.x)) {
     vel.x = 0;
-    overBounds.x = 0;
     pos.x = pOverBounds.x > 0 ? 0 : winSize.x - boundary.x;
   }
   if (pos.x > winSize.x-bumper || posBR().x < bumper) {
@@ -89,7 +88,6 @@ void scrollable::advance(
   };
   if (passedZero(pOverBounds.y, overBounds.y)) {
     vel.y = 0;
-    overBounds.y = 0;
     pos.y = pOverBounds.y > 0 ? 0 : winSize.y - boundary.y;
   }
   if (pos.y > winSize.y-bumper || posBR().y < bumper) {
