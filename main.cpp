@@ -24,9 +24,6 @@ float ternaryReduc(const float in) {return in ? (in > 0 ? 1 : -1) : 0;}
 bool passedZero(const float prev, const float cur) {
   return (prev > 0 && cur <= 0) || (prev < 0 && cur >= 0);
 }
-float closeEnough(const float in) {
-  return in < 0.1 && in > -0.1 ? 0 : in;
-}
 float overBound(const float tl, const float br, const float win) {
   return tl > 0 ? tl : (br < win ? br - win : 0);
 }
@@ -70,30 +67,26 @@ void scrollable::advance(
   pOverBounds = overBounds;
   overBounds = distrib(overBound, pos, posBR(), winSize);
   pPos = pos;
-  pos = pos + vel;
-  vel = cursPress ?
-    (pCursPress ? cursPos - pCursPos : float2()) :
-    float2(
-      vel.x + accel*ternaryReduc(overBounds.x)*-1,
+  pos.y = passedZero(pOverBounds.y, overBounds.y) ?
+    (pOverBounds.y > 0 ? 0 : winSize.y - boundary.y) :
+    (pos.y > winSize.y-bumper ?
+      winSize.y - bumper :
+      (posBR().y < bumper ?
+        bumper - boundary.y :
+        pos.y + vel.y
+      )
+    )
+  ;
+  vel.y =
+    pos.y > winSize.y-bumper ||
+    posBR().y < bumper ||
+    passedZero(pOverBounds.y, overBounds.y) ?
+    0 :
+    (cursPress ?
+      (pCursPress ? cursPos.y - pCursPos.y : 0) :
       vel.y + accel*ternaryReduc(overBounds.y)*-1
     )
   ;
-  if (passedZero(pOverBounds.x, overBounds.x)) {
-    vel.x = 0;
-    pos.x = pOverBounds.x > 0 ? 0 : winSize.x - boundary.x;
-  }
-  if (pos.x > winSize.x-bumper || posBR().x < bumper) {
-    vel.x = 0;
-    pos.x = pos.x > winSize.x-bumper ? winSize.x - bumper : bumper - boundary.x;
-  };
-  if (passedZero(pOverBounds.y, overBounds.y)) {
-    vel.y = 0;
-    pos.y = pOverBounds.y > 0 ? 0 : winSize.y - boundary.y;
-  }
-  if (pos.y > winSize.y-bumper || posBR().y < bumper) {
-    vel.y = 0;
-    pos.y = pos.y > winSize.y-bumper ? winSize.y - bumper : bumper - boundary.y;
-  };
 }
 
 int main(int argc, char* argv[]) {
