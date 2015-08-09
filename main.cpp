@@ -69,6 +69,8 @@ void scrollable::advance(
 ) {
   pOverBounds = overBounds;
   overBounds = distrib(overBound, pos, posBR(), winSize);
+  pPos = pos;
+  pos = pos + vel;
   vel = cursPress ?
     (pCursPress ? cursPos - pCursPos : float2()) :
     float2(
@@ -76,8 +78,6 @@ void scrollable::advance(
       vel.y + accel*ternaryReduc(overBounds.y)*-1
     )
   ;
-  pPos = pos;
-  pos = pos + vel;
   if (passedZero(pOverBounds.x, overBounds.x)) {
     vel.x = 0;
     pos.x = pOverBounds.x > 0 ? 0 : winSize.x - boundary.x;
