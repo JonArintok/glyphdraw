@@ -24,9 +24,6 @@ float ternaryReduc(const float in) {return in ? (in > 0 ? 1 : -1) : 0;}
 bool passedZero(const float prev, const float cur) {
   return (prev > 0 && cur <= 0) || (prev < 0 && cur >= 0);
 }
-float overBound(const float tl, const float br, const float win) {
-  return tl > 0 ? tl : (br < win ? br - win : 0);
-}
 class scrollable {
   float  accel;
   float  bumper;
@@ -40,6 +37,7 @@ class scrollable {
   float2 winSize;
   float2 posBR() {return pos+boundary;}
   float2 pPosBR() {return pPos+boundary;}
+  float  genPos();
 public:
   scrollable(
     const float  accelIn,
@@ -64,35 +62,38 @@ void scrollable::advance(
   float2 cursPos,
   float2 pCursPos
 ) {
-  pOverBounds = overBounds;
-  overBounds = distrib(overBound, pos, posBR(), winSize);
-  pPos = pos;
-  pos.y = passedZero(pOverBounds.y, overBounds.y) ?
-    (pOverBounds.y > 0 ? 0 : winSize.y - boundary.y) :
-    (pos.y > winSize.y-bumper ?
-      winSize.y - bumper :
-      (posBR().y < bumper ?
-        bumper - boundary.y :
-        pos.y + vel.y
+  for (int i = 0; i < 2; i++) {
+    *pOverBounds.pSel(i) = overBounds.sel(i);
+    *overBounds.pSel(i) = pos.sel(i) > 0 ?
+      pos.sel(i) :
+      (posBR().sel(i) < winSize.sel(i) ? posBR().sel(i) - winSize.sel(i) : 0)
+    ;
+    *pPos.pSel(i) = pos.sel(i);
+    *pos.pSel(i) = passedZero(pOverBounds.sel(i), overBounds.sel(i)) ?
+      (pOverBounds.sel(i) > 0 ? 0 : winSize.sel(i) - boundary.sel(i)) :
+      (pos.sel(i) > winSize.sel(i)-bumper ?
+        winSize.sel(i) - bumper :
+        (posBR().sel(i) < bumper ?
+          bumper - boundary.sel(i) :
+          pos.sel(i) + vel.sel(i)
+        )
       )
-    )
-  ;
-  vel.y =
-    pos.y > winSize.y-bumper ||
-    posBR().y < bumper ||
-    passedZero(pOverBounds.y, overBounds.y) ?
-    0 :
-    (cursPress ?
-      (pCursPress ? cursPos.y - pCursPos.y : 0) :
-      vel.y + accel*ternaryReduc(overBounds.y)*-1
-    )
-  ;
+    ;
+    *vel.pSel(i) =
+      pos.sel(i) > winSize.sel(i)-bumper ||
+      posBR().sel(i) < bumper ||
+      passedZero(pOverBounds.sel(i), overBounds.sel(i)) ?
+      0 :
+      (cursPress ?
+        (pCursPress ? cursPos.sel(i) - pCursPos.sel(i) : 0) :
+        vel.sel(i) + accel*ternaryReduc(overBounds.sel(i))*-1
+      )
+    ;
+  }
 }
 
 int main(int argc, char* argv[]) {
-
   const int2 videoSize = int2(1280, 720);
-
   const cl_uint    maxDevices = 8;
   cl_device_id     computeDevices[maxDevices];
   cl_context       context = NULL;

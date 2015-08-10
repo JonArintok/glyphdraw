@@ -40,7 +40,14 @@ st sel(uint8_t axis) {\
     case  1: return y;\
     default: return 0;\
   }\
-}
+}\
+st *pSel(uint8_t axis) {\
+  switch(axis) {\
+    case  0: return &x;\
+    case  1: return &y;\
+    default: return 0;\
+  }\
+}\
 
 struct int2{
   __pair(int2, int);
@@ -53,35 +60,3 @@ struct float2{
   __pair(float2, float);
   float2(int2 i) : x(i.x), y(i.y) {}
 };
-
-
-float2 distrib(
-  float (*F)(const float),
-  const float2 a
-) {return float2(F(a.x), F(a.y));}
-float2 distrib(
-  float (*F)(const float, const float),
-  const float2 a,
-  const float2 b
-) {return float2(F(a.x, b.x), F(a.y, b.y));}
-float2 distrib(
-  float (*F)(const float, const float, const float),
-  const float2 a,
-  const float2 b,
-  const float2 c
-) {return float2(F(a.x, b.x, c.x), F(a.y, b.y, c.y));}
-float2 distrib(
-  float (*F)(const float, const float, const float, const float),
-  const float2 a,
-  const float2 b,
-  const float2 c,
-  const float2 d
-) {return float2(F(a.x, b.x, c.x, d.x), F(a.y, b.y, c.y, d.y));}
-float2 distrib(
-  float (*F)(const float, const float, const float, const float, const float),
-  const float2 a,
-  const float2 b,
-  const float2 c,
-  const float2 d,
-  const float2 e
-) {return float2(F(a.x, b.x, c.x, d.x, e.x), F(a.y, b.y, c.y, d.y, e.y));}
