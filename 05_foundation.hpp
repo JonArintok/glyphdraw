@@ -1,30 +1,5 @@
 
 
-struct Function {
-};
-
-struct Buffer {
-  vector<Buffer> *dependents;
-  bool needReeval;
-};
-struct Variable : Buffer {
-};
-struct Array : Buffer {
-  bool isShaded;
-};
-
-union RootUnion {
-  Variable v;
-  Array    a;
-  Function f;
-};
-enum RootType {
-  variable,
-  array,
-  function,
-  rootTypeCount
-};
-
 struct intMap {
   void insert(int key, int value) {
     keys.push_back(key);
@@ -103,8 +78,6 @@ textBlock UItextBlock;
 struct Root {
   vector<int> text;
   int         color;
-  RootType    rootType;
-  RootUnion   root;
   Root() {}
   Root(const string &str) {intVecFromString(text, str);}
 };

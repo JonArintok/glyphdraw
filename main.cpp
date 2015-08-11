@@ -18,79 +18,7 @@ using std::stringstream;
 #include "04_initCL.hpp"
 #include "05_foundation.hpp"
 #include "06_testRoots.hpp"
-
-
-float ternaryReduc(const float in) {return in ? (in > 0 ? 1 : -1) : 0;}
-bool passedZero(const float prev, const float cur) {
-  return (prev > 0 && cur <= 0) || (prev < 0 && cur >= 0);
-}
-class scrollable {
-  float  accel;
-  float  bumper;
-  float2 size;
-  float2 boundary;
-  float2 vel;
-  float2 pos;
-  float2 pPos;
-  float2 overBounds;
-  float2 pOverBounds;
-  float2 winSize;
-  float2 posBR() {return pos+boundary;}
-  float2 pPosBR() {return pPos+boundary;}
-  float  genPos();
-public:
-  scrollable(
-    const float  accelIn,
-    const float2 sizeIn,
-    const float2 winSizeIn
-  ) :
-    accel(accelIn), size(sizeIn), winSize(winSizeIn)
-  {
-    boundary = float2(
-      size.x < winSize.x ? winSize.x : size.x,
-      size.y < winSize.y ? winSize.y : size.y
-    );
-    bumper = winSize.y/8;
-  }
-  void advance(float cursPress,float pCursPress,float2 cursPos,float2 pCursPos);
-  float2 getPos() {return pos;}
-  bool hasMoved() {return pos != pPos;}
-};
-void scrollable::advance(
-  float  cursPress,
-  float  pCursPress,
-  float2 cursPos,
-  float2 pCursPos
-) {
-  for (int i = 0; i < 2; i++) {
-    *pOverBounds.pSel(i) = overBounds.sel(i);
-    *overBounds.pSel(i) = pos.sel(i) > 0 ?
-      pos.sel(i) :
-      (posBR().sel(i) < winSize.sel(i) ? posBR().sel(i) - winSize.sel(i) : 0)
-    ;
-    *pPos.pSel(i) = pos.sel(i);
-    *pos.pSel(i) = passedZero(pOverBounds.sel(i), overBounds.sel(i)) ?
-      (pOverBounds.sel(i) > 0 ? 0 : winSize.sel(i) - boundary.sel(i)) :
-      (pos.sel(i) > winSize.sel(i)-bumper ?
-        winSize.sel(i) - bumper :
-        (posBR().sel(i) < bumper ?
-          bumper - boundary.sel(i) :
-          pos.sel(i) + vel.sel(i)
-        )
-      )
-    ;
-    *vel.pSel(i) =
-      pos.sel(i) > winSize.sel(i)-bumper ||
-      posBR().sel(i) < bumper ||
-      passedZero(pOverBounds.sel(i), overBounds.sel(i)) ?
-      0 :
-      (cursPress ?
-        (pCursPress ? cursPos.sel(i) - pCursPos.sel(i) : 0) :
-        vel.sel(i) + accel*ternaryReduc(overBounds.sel(i))*-1
-      )
-    ;
-  }
-}
+#include "07_scrollable.hpp"
 
 int main(int argc, char* argv[]) {
   const int2 videoSize = int2(1280, 720);
@@ -263,7 +191,7 @@ int main(int argc, char* argv[]) {
   if (!strcmp(SDL_GetError(), "Unknown touch device")) SDL_ClearError();//??
   checkSDLerror(__LINE__, __FILE__);
   SDL_Window *window = SDL_CreateWindow(
-    "ShaderPunk",              //const char* title,
+    "glyphdraw",               //const char* title,
     SDL_WINDOWPOS_UNDEFINED,   //int         x,
     SDL_WINDOWPOS_UNDEFINED,   //int         y,
     videoSize.x,               //int         w,
